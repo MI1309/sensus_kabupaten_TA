@@ -8,6 +8,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>23</maven.compiler.release>
-        <exec.mainClass>panel</exec.mainClass>
+        <exec.mainClass>login_form</exec.mainClass>
     </properties>
 </project>
