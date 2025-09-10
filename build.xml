@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="SistemPendataanKabupaten" default="run" basedir=".">
+    
+    <!-- Properti proyek -->
+    <property name="app.name" value="SistemPendataanKabupaten"/>
+    <property name="app.version" value="1.0.0"/>
+    <property name="main.class" value="com.kabupaten.main.MainApplication"/>
+    
+    <!-- Direktori -->
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="docs.dir" value="docs"/>
+    
+    <!-- JAR file MySQL Connector -->
+    <property name="mysql.jar" value="mysql-connector-java-8.0.33.jar"/>
+    
+    <!-- Classpath -->
+    <path id="classpath">
+        <pathelement location="${classes.dir}"/>
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+    
+    <!-- Target: init - Inisialisasi direktori -->
+    <target name="init" description="Inisialisasi direktori build">
+        <echo message="Inisialisasi proyek ${app.name} v${app.version}"/>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${lib.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${docs.dir}"/>
+        
+        <!-- Copy MySQL Connector jika belum ada -->
+        <echo message="Memeriksa MySQL Connector..."/>
+        <available file="${lib.dir}/${mysql.jar}" property="mysql.exists"/>
+        <antcall target="download-mysql-connector"/>
+    </target>
+    
+    <!-- Target: download-mysql-connector -->
+    <target name="download-mysql-connector" unless="mysql.exists" description="Download MySQL Connector jika diperlukan">
+        <echo message="PERHATIAN: MySQL Connector tidak ditemukan di ${lib.dir}"/>
+        <echo message="Silakan download MySQL Connector J dari:"/>
+        <echo message="https://dev.mysql.com/downloads/connector/j/"/>
+        <echo message="Dan letakkan file ${mysql.jar} di folder ${lib.dir}/"/>
+        <echo message=""/>
+        <echo message="Alternatif: Anda dapat menggunakan Maven atau manual download"/>
+        
+        <!-- Buat file placeholder agar build bisa lanjut -->
+        <mkdir dir="${lib.dir}"/>
+        <echo message="# Letakkan MySQL Connector JAR di sini" file="${lib.dir}/README.txt"/>
+    </target>
+    
+    <!-- Target: compile - Kompilasi source code -->
+    <target name="compile" depends="init" description="Kompilasi source code">
+        <echo message="Mengkompilasi source code..."/>
+        
+        <javac srcdir="${src.dir}" 
+               destdir="${classes.dir}"
+               classpathref="classpath"
+               includeantruntime="false"
+               encoding="UTF-8"
+               source="8"
+               target="8"
+               debug="true">
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+        
+        <echo message="Kompilasi selesai!"/>
+    </target>
+    
+    <!-- Target: jar - Membuat file JAR -->
+    <target name="jar" depends="compile" description="Membuat file JAR aplikasi">
+        <echo message="Membuat file JAR..."/>
+        
+        <jar destfile="${dist.dir}/${app.name}-${app.version}.jar" 
+             basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Implementation-Title" value="${app.name}"/>
+                <attribute name="Implementation-Version" value="${app.version}"/>
+                <attribute name="Implementation-Vendor" value="Pemda Digital"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Built-Date" value="${TODAY}"/>
+                <attribute name="Class-Path" value="${mysql.jar}"/>
+            </manifest>
+        </jar>
+        
+        <!-- Copy dependencies -->
+        <copy todir="${dist.dir}">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        
+        <echo message="JAR berhasil dibuat: ${dist.dir}/${app.name}-${app.version}.jar"/>
+    </target>
+    
+    <!-- Target: run - Menjalankan aplikasi -->
+    <target name="run" depends="compile" description="Menjalankan aplikasi">
+        <echo message="Menjalankan aplikasi..."/>
+        <echo message="Pastikan MySQL server sudah berjalan!"/>
+        
+        <java classname="${main.class}" 
+              classpathref="classpath"
+              fork="true">
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
+            <jvmarg value="-Xmx512m"/>
+        </java>
+    </target>
+    
+    <!-- Target: test - Testing aplikasi -->
+    <target name="test" depends="compile" description="Test koneksi database">
+        <echo message="Testing koneksi database..."/>
+        
+        <java classname="com.kabupaten.database.DatabaseConnection" 
+              classpathref="classpath"
+              fork="true">
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
+        </java>
+    </target>
+    
+    <!-- Target: docs - Generate dokumentasi -->
+    <target name="docs" depends="init" description="Generate dokumentasi Javadoc">
+        <echo message="Membuat dokumentasi..."/>
+        
+        <javadoc sourcepath="${src.dir}"
+                 destdir="${docs.dir}"
+                 classpathref="classpath"
+                 packagenames="com.kabupaten.*"
+                 author="true"
+                 version="true"
+                 use="true"
+                 windowtitle="${app.name} API Documentation"
+                 doctitle="${app.name} v${app.version}"
+                 encoding="UTF-8"
+                 charset="UTF-8">
+            <bottom><![CDATA[Copyright &#169; 2024 Sistem Pendataan Kabupaten. All Rights Reserved.]]></bottom>
+        </javadoc>
+        
+        <echo message="Dokumentasi berhasil dibuat di: ${docs.dir}/index.html"/>
+    </target>
+    
+    <!-- Target: package - Membuat distribusi lengkap -->
+    <target name="package" depends="jar,docs" description="Membuat paket distribusi lengkap">
+        <echo message="Membuat paket distribusi..."/>
+        
+        <!-- Buat struktur direktori distribusi -->
+        <mkdir dir="${dist.dir}/release"/>
+        <mkdir dir="${dist.dir}/release/lib"/>
+        <mkdir dir="${dist.dir}/release/docs"/>
+        <mkdir dir="${dist.dir}/release/sql"/>
+        
+        <!-- Copy file-file yang diperlukan -->
+        <copy file="${dist.dir}/${app.name}-${app.version}.jar" todir="${dist.dir}/release/"/>
+        <copy todir="${dist.dir}/release/lib">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="${dist.dir}/release/docs">
+            <fileset dir="${docs.dir}"/>
+        </copy>
+        
+        <!-- Copy SQL scripts jika ada -->
+        <copy todir="${dist.dir}/release/sql" failonerror="false">
+            <fileset dir="sql" includes="*.sql"/>
+        </copy>
+        
+        <!-- Buat script runner -->
+        <echo file="${dist.dir}/release/run.bat"><![CDATA[@echo off
+echo Sistem Pendataan Kabupaten v${app.version}
+echo ========================================
+echo.
+echo Pastikan MySQL server sudah berjalan!
+echo.
+java -Xmx512m -Dfile.encoding=UTF-8 -cp "${app.name}-${app.version}.jar;lib/*" ${main.class}
+pause
+]]></echo>
+        
+        <echo file="${dist.dir}/release/run.sh"><![CDATA[#!/bin/bash
+echo "Sistem Pendataan Kabupaten v${app.version}"
+echo "========================================"
+echo
+echo "Pastikan MySQL server sudah berjalan!"
+echo
+java -Xmx512m -Dfile.encoding=UTF-8 -cp "${app.name}-${app.version}.jar:lib/*" ${main.class}
+]]></echo>
+        
+        <!-- Buat README -->
+        <echo file="${dist.dir}/release/README.txt"><![CDATA[SISTEM PENDATAAN KABUPATEN v${app.version}
+===========================================
+
+PERSYARATAN SISTEM:
+- Java Runtime Environment (JRE) 8 atau lebih baru
+- MySQL Server 5.7 atau lebih baru
+- RAM minimal 512 MB
+- Ruang disk minimal 100 MB
+
+INSTALASI:
+1. Pastikan MySQL server sudah terinstall dan berjalan
+2. Import database schema dari file sql/database_schema.sql
+3. Sesuaikan konfigurasi database di DatabaseConnection.java jika diperlukan
+4. Jalankan aplikasi dengan double-click run.bat (Windows) atau ./run.sh (Linux/Mac)
+
+LOGIN DEFAULT:
+- Username: admin, Password: admin123 (Administrator)
+- Username: operator, Password: operator123 (Operator)
+
+FITUR:
+- Login multi-user dengan role
+- CRUD data kabupaten
+- Pencarian data
+- Form input dengan validasi
+- Tampilan modern dengan Nimbus Look & Feel
+
+TROUBLESHOOTING:
+- Jika gagal koneksi database, periksa MySQL server dan konfigurasi
+- Jika font tidak tampil dengan baik, pastikan OS mendukung font Segoe UI
+- Untuk error OutOfMemory, tingkatkan parameter -Xmx di script runner
+
+KONTAK:
+Email: developer@kabupaten.go.id
+Website: https://github.com/yourusername/sistem-kabupaten
+
+© 2024 Sistem Pendataan Kabupaten
+]]></echo>
+        
+        <!-- Set executable permission untuk script Linux/Mac -->
+        <chmod file="${dist.dir}/release/run.sh" perm="755"/>
+        
+        <!-- Buat ZIP distribusi -->
+        <zip destfile="${dist.dir}/${app.name}-${app.version}-release.zip">
+            <fileset dir="${dist.dir}/release"/>
+        </zip>
+        
+        <echo message="Paket distribusi berhasil dibuat!"/>
+        <echo message="File: ${dist.dir}/${app.name}-${app.version}-release.zip"/>
+        <echo message="Folder: ${dist.dir}/release/"/>
+    </target>
+    
+    <!-- Target: clean - Membersihkan file build -->
+    <target name="clean" description="Membersihkan file hasil build">
+        <echo message="Membersihkan file build..."/>
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${docs.dir}"/>
+        <echo message="File build berhasil dibersihkan!"/>
+    </target>
+    
+    <!-- Target: rebuild - Clean dan build ulang -->
+    <target name="rebuild" depends="clean,jar" description="Clean dan build ulang aplikasi">
+        <echo message="Rebuild aplikasi selesai!"/>
+    </target>
+    
+    <!-- Target: install-dev - Setup environment development -->
+    <target name="install-dev" depends="init" description="Setup environment untuk development">
+        <echo message="Setup development environment..."/>
+        
+        <!-- Buat struktur folder source -->
+        <mkdir dir="${src.dir}/com/kabupaten/main"/>
+        <mkdir dir="${src.dir}/com/kabupaten/database"/>
+        <mkdir dir="${src.dir}/com/kabupaten/model"/>
+        <mkdir dir="${src.dir}/com/kabupaten/dao"/>
+        <mkdir dir="${src.dir}/com/kabupaten/view"/>
+        <mkdir dir="sql"/>
+        
+        <!-- Buat file properties untuk konfigurasi -->
+        <echo file="config.properties"><![CDATA[
+# Konfigurasi Database
+db.host=localhost
+db.port=3306
+db.name=db_kabupaten
+db.username=root
+db.password=
+
+# Konfigurasi Aplikasi
+app.title=Sistem Pendataan Kabupaten
+app.version=${app.version}
+app.author=Developer
+
+# Look and Feel
+ui.laf=Nimbus
+ui.font.default=Segoe UI
+ui.theme.primary=#336699
+]]></echo>
+        
+        <echo message="Development environment siap!"/>
+        <echo message="Struktur folder dan file konfigurasi telah dibuat."/>
+    </target>
+    
+    <!-- Target: create-installer - Membuat installer (Windows) -->
+    <target name="create-installer" depends="package" if="os.windows" description="Membuat installer Windows">
+        <echo message="Membuat Windows installer..."/>
+        
+        <!-- Buat NSIS script -->
+        <echo file="${dist.dir}/installer.nsi"><![CDATA[
+!include "MUI2.nsh"
+
+Name "Sistem Pendataan Kabupaten v${app.version}"
+OutFile "${dist.dir}\SistemKabupaten-${app.version}-Setup.exe"
+InstallDir "$PROGRAMFILES\SistemKabupaten"
+RequestExecutionLevel admin
+
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
+
+!insertmacro MUI_LANGUAGE "English"
+
+Section "Program Files" SecProgram
+    SetOutPath "$INSTDIR"
+    File /r "${dist.dir}\release\*.*"
+    
+    CreateDirectory "$SMPROGRAMS\Sistem Kabupaten"
+    CreateShortCut "$SMPROGRAMS\Sistem Kabupaten\Sistem Pendataan Kabupaten.lnk" "$INSTDIR\run.bat" "" "$INSTDIR\icon.ico"
+    CreateShortCut "$DESKTOP\Sistem Pendataan Kabupaten.lnk" "$INSTDIR\run.bat" "" "$INSTDIR\icon.ico"
+    
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemKabupaten" "DisplayName" "Sistem Pendataan Kabupaten"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemKabupaten" "UninstallString" "$INSTDIR\uninstall.exe"
+    WriteUninstaller "$INSTDIR\uninstall.exe"
+SectionEnd
+
+Section "Uninstall"
+    Delete "$INSTDIR\*.*"
+    RMDir /r "$INSTDIR"
+    Delete "$SMPROGRAMS\Sistem Kabupaten\*.*"
+    RMDir "$SMPROGRAMS\Sistem Kabupaten"
+    Delete "$DESKTOP\Sistem Pendataan Kabupaten.lnk"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SistemKabupaten"
+SectionEnd
+]]></echo>
+        
+        <echo message="NSIS script dibuat. Gunakan NSIS untuk compile installer."/>
+    </target>
+    
+    <!-- Target: backup - Backup source code -->
+    <target name="backup" description="Backup source code dan database">
+        <echo message="Membuat backup..."/>
+        
+        <tstamp>
+            <format property="backup.timestamp" pattern="yyyyMMdd-HHmmss"/>
+        </tstamp>
+        
+        <property name="backup.name" value="${app.name}-backup-${backup.timestamp}"/>
+        
+        <zip destfile="${backup.name}.zip">
+            <fileset dir=".">
+                <include name="src/**"/>
+                <include name="sql/**"/>
+                <include name="build.xml"/>
+                <include name="config.properties"/>
+                <include name="README.md"/>
+                <exclude name="build/**"/>
+                <exclude name="dist/**"/>
+                <exclude name="*.zip"/>
+            </fileset>
+        </zip>
+        
+        <echo message="Backup berhasil: ${backup.name}.zip"/>
+    </target>
+    
+    <!-- Target: deploy - Deploy ke server -->
+    <target name="deploy" depends="jar" description="Deploy aplikasi ke server">
+        <echo message="Deploy ke server..."/>
+        
+        <!-- Konfigurasi server (sesuaikan dengan kebutuhan) -->
+        <property name="deploy.server" value="192.168.1.100"/>
+        <property name="deploy.user" value="deploy"/>
+        <property name="deploy.path" value="/opt/aplikasi/"/>
+        
+        <!-- Upload menggunakan SCP (memerlukan jsch.jar) -->
+        <echo message="Upload ke ${deploy.server}:${deploy.path}"/>
+        <echo message="Pastikan SSH key sudah dikonfigurasi!"/>
+        
+        <!-- Contoh perintah deploy manual -->
+        <echo message="Manual deploy commands:"/>
+        <echo message="scp ${dist.dir}/${app.name}-${app.version}.jar ${deploy.user}@${deploy.server}:${deploy.path}"/>
+        <echo message="scp ${lib.dir}/*.jar ${deploy.user}@${deploy.server}:${deploy.path}lib/"/>
+    </target>
+    
+    <!-- Target: help - Menampilkan bantuan -->
+    <target name="help" description="Menampilkan bantuan penggunaan Ant build">
+        <echo message=""/>
+        <echo message="========================================"/>
+        <echo message="  ${app.name} v${app.version}"/>
+        <echo message="  Apache Ant Build System"/>
+        <echo message="========================================"/>
+        <echo message=""/>
+        <echo message="Target yang tersedia:"/>
+        <echo message=""/>
+        <echo message="  init          - Inisialisasi direktori build"/>
+        <echo message="  compile       - Kompilasi source code"/>
+        <echo message="  jar           - Membuat file JAR aplikasi"/>
+        <echo message="  run           - Menjalankan aplikasi"/>
+        <echo message="  test          - Test koneksi database"/>
+        <echo message="  docs          - Generate dokumentasi Javadoc"/>
+        <echo message="  package       - Membuat paket distribusi lengkap"/>
+        <echo message="  clean         - Membersihkan file build"/>
+        <echo message="  rebuild       - Clean dan build ulang"/>
+        <echo message="  install-dev   - Setup environment development"/>
+        <echo message="  backup        - Backup source code"/>
+        <echo message="  deploy        - Deploy ke server"/>
+        <echo message="  help          - Menampilkan bantuan ini"/>
+        <echo message=""/>
+        <echo message="Contoh penggunaan:"/>
+        <echo message="  ant compile   - Kompilasi saja"/>
+        <echo message="  ant run       - Kompilasi dan jalankan"/>
+        <echo message="  ant package   - Buat distribusi lengkap"/>
+        <echo message="  ant clean run - Bersihkan dan jalankan"/>
+        <echo message=""/>
+        <echo message="File konfigurasi:"/>
+        <echo message="  build.xml           - Build script ini"/>
+        <echo message="  config.properties   - Konfigurasi aplikasi"/>
+        <echo message="  lib/               - Library dependencies"/>
+        <echo message="  src/               - Source code"/>
+        <echo message=""/>
+    </target>
+    
+    <!-- Condition untuk deteksi OS -->
+    <condition property="os.windows">
+        <os family="windows"/>
+    </condition>
+    
+    <condition property="os.unix">
+        <os family="unix"/>
+    </condition>
+    
+    <!-- Default target info -->
+    <echo message="Gunakan 'ant help' untuk melihat semua target yang tersedia"/>
+    
+</project>
