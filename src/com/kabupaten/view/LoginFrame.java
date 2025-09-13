@@ -1,10 +1,10 @@
 package com.kabupaten.view;
-
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 import com.kabupaten.database.DatabaseConnection;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.sql.*;
 
 /**
@@ -15,24 +15,23 @@ public class LoginFrame extends JFrame {
     private JPasswordField txtPassword;
     private JButton btnLogin;
     private JButton btnExit;
-    
+
     public LoginFrame() {
         initComponents();
         setupFrame();
     }
-    
+
     private void initComponents() {
-        setTitle("Login - Aplikasi Pendataan Kabupaten");
+        setTitle("Login - Aplikasi Pendataan Kabupaten Sidoarjo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
-        
+
         // Main panel dengan gradient background
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                
                 GradientPaint gradient = new GradientPaint(
                     0, 0, new Color(74, 144, 226),
                     0, getHeight(), new Color(39, 82, 139)
@@ -42,213 +41,259 @@ public class LoginFrame extends JFrame {
             }
         };
         mainPanel.setLayout(new GridBagLayout());
-        
+
         // Login panel
         JPanel loginPanel = createLoginPanel();
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.insets = new Insets(50, 50, 50, 50);
-        
+        gbc.insets = new Insets(40, 40, 40, 40);
+
         mainPanel.add(loginPanel, gbc);
         add(mainPanel);
     }
-    
+
     private JPanel createLoginPanel() {
+        JPanel shadowPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(new Color(0, 0, 0, 40));
+                g2.fillRoundRect(6, 6, getWidth() - 12, getHeight() - 12, 30, 30);
+                g2.dispose();
+            }
+        };
+        shadowPanel.setOpaque(false);
+        shadowPanel.setLayout(new BorderLayout());
+
         JPanel panel = new JPanel();
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createRaisedBevelBorder(),
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
             BorderFactory.createEmptyBorder(30, 40, 30, 40)
         ));
         panel.setLayout(new GridBagLayout());
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
-        
-        // Logo/Title
+
+        // Logo dan Title di satu baris, center
+        JPanel logoTitlePanel = new JPanel(new BorderLayout());
+        logoTitlePanel.setOpaque(false);
+
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/com/kabupaten/img/logo.jpg"));
+        Image scaledImage = originalIcon.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+        BufferedImage circleImage = new BufferedImage(70, 70, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = circleImage.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Buat masking lingkaran
+        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, 70, 70);
+        g2.setClip(circle);
+
+        // Gambar image ke dalam lingkaran
+        g2.drawImage(scaledImage, 0, 0, null);
+        g2.dispose();
+
+        // Buat ImageIcon dari hasil cropping
+        ImageIcon roundedIcon = new ImageIcon(circleImage);
+
+        JLabel logoLabel = new JLabel(roundedIcon);
+        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         JLabel titleLabel = new JLabel("SISTEM PENDATAAN KABUPATEN");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(new Color(39, 82, 139));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
+
+        logoTitlePanel.add(logoLabel, BorderLayout.NORTH);
+        logoTitlePanel.add(titleLabel, BorderLayout.CENTER);
+
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.gridwidth = 2;
-        gbc.insets = new Insets(0, 0, 30, 0);
+        gbc.insets = new Insets(-10, 0, 25, 0);
         gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(titleLabel, gbc);
-        
+        panel.add(logoTitlePanel, gbc);
+
         // Username
-        JLabel lblUsername = new JLabel("Username:");
-        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        gbc.gridx = 0; gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.insets = new Insets(5, 0, 5, 10);
+        JLabel lblUsername = new JLabel("Username");
+        lblUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblUsername.setForeground(new Color(39, 82, 139));
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 5, 0);
         gbc.anchor = GridBagConstraints.WEST;
         panel.add(lblUsername, gbc);
-        
+
+        JPanel usernamePanel = new JPanel(new BorderLayout());
+        usernamePanel.setBackground(Color.WHITE);
+        usernamePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
         txtUsername = new JTextField(20);
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtUsername.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        gbc.gridx = 1; gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(txtUsername, gbc);
-        
+        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtUsername.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        usernamePanel.add(txtUsername, BorderLayout.CENTER);
+
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        panel.add(usernamePanel, gbc);
+
         // Password
-        JLabel lblPassword = new JLabel("Password:");
-        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.NONE;
+        JLabel lblPassword = new JLabel("Password");
+        lblPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblPassword.setForeground(new Color(39, 82, 139));
+        gbc.gridy = 3;
+        gbc.insets = new Insets(0, 0, 5, 0);
         panel.add(lblPassword, gbc);
-        
+
+        JPanel passwordPanel = new JPanel(new BorderLayout());
+        passwordPanel.setBackground(Color.WHITE);
+        passwordPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
         txtPassword = new JPasswordField(20);
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtPassword.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(8, 10, 8, 10)
-        ));
-        gbc.gridx = 1; gbc.gridy = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(txtPassword, gbc);
-        
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassword.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        passwordPanel.add(txtPassword, BorderLayout.CENTER);
+
+        gbc.gridy = 4;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        panel.add(passwordPanel, gbc);
+
         // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
         buttonPanel.setBackground(Color.WHITE);
-        
+
         btnLogin = createStyledButton("LOGIN", new Color(46, 125, 50));
         btnExit = createStyledButton("KELUAR", new Color(198, 40, 40));
-        
+
+        btnLogin.setPreferredSize(new Dimension(120, 40));
+        btnExit.setPreferredSize(new Dimension(120, 40));
+
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        btnExit.setFont(new Font("Segoe UI", Font.BOLD, 15));
+
+
         buttonPanel.add(btnLogin);
-        buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(btnExit);
-        
-        gbc.gridx = 0; gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(20, 0, 0, 0);
-        gbc.anchor = GridBagConstraints.CENTER;
+
+        gbc.gridy = 5;
+            gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(buttonPanel, gbc);
-        
-        // Action listeners
+
+        shadowPanel.add(panel, BorderLayout.CENTER);
+
         setupActionListeners();
-        
-        return panel;
+
+        return shadowPanel;
     }
-    
+
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Hover effect
+        button.setOpaque(true);
+
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor.darker());
             }
-            
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor);
             }
         });
-        
+
         return button;
     }
-    
+
     private void setupActionListeners() {
-        btnLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                performLogin();
-            }
-        });
-        
-        btnExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
-        
-        // Enter key untuk login
-        txtPassword.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                performLogin();
-            }
-        });
+        btnLogin.addActionListener(e -> performLogin());
+        txtUsername.addActionListener(e -> txtPassword.requestFocus());
+        btnExit.addActionListener(e -> exit());
+        txtPassword.addActionListener(e -> performLogin());
     }
-    
+
+    // route page
     private void performLogin() {
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword());
-        
+
         if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Username dan password tidak boleh kosong!", 
-                "Peringatan", 
+            JOptionPane.showMessageDialog(this,
+                "Username dan password tidak boleh kosong!",
+                "Peringatan",
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        // Validasi login ke database
+
         if (validateLogin(username, password)) {
-            // Login berhasil
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                new MainFrame(username).setVisible(true);
-            });
+            if (validateLogin(username, password) && username.equals("admin")) {
+                this.dispose();
+                SwingUtilities.invokeLater(() -> {
+                    new dashboard_admin(username).setVisible(true);
+                });
+            } else {
+                this.dispose();
+                SwingUtilities.invokeLater(() -> {
+                    new dashboard_guest(username).setVisible(true);
+                });
+                
+            }
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "Username atau password salah!", 
-                "Login Gagal", 
+            JOptionPane.showMessageDialog(this,
+                "Username atau password salah!",
+                "Login Gagal",
                 JOptionPane.ERROR_MESSAGE);
             txtPassword.setText("");
+            txtUsername.setText("");
             txtUsername.requestFocus();
         }
     }
-    
+
     private boolean validateLogin(String username, String password) {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
-        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
             stmt.setString(1, username);
-            stmt.setString(2, password); // Note: Dalam aplikasi nyata, gunakan password hashing
-            
+            stmt.setString(2, password);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
             }
-            
         } catch (SQLException e) {
             System.err.println("Error validating login: " + e.getMessage());
-            JOptionPane.showMessageDialog(this, 
-                "Error koneksi database: " + e.getMessage(), 
-                "Error", 
+            JOptionPane.showMessageDialog(this,
+                "Error koneksi database: " + e.getMessage(),
+                "Error",
                 JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
-    
+
+
+    private void exit() {
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Apakah Anda yakin ingin Keluar?", 
+            "Konfirmasi Keluar", 
+            JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                System.exit(1);
+            });
+        }
+    }
+
     private void setupFrame() {
         pack();
         setLocationRelativeTo(null);
-        
-        // Set minimum size
-        Dimension size = getSize();
-        setMinimumSize(size);
-        
-        // Focus pada username field
-        SwingUtilities.invokeLater(() -> {
-            txtUsername.requestFocus();
-        });
+        setMinimumSize(getSize());
+        SwingUtilities.invokeLater(() -> txtUsername.requestFocus());
     }
 }

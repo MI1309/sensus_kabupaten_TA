@@ -57,6 +57,19 @@
     <!-- Target: compile - Kompilasi source code -->
     <target name="compile" depends="init" description="Kompilasi source code">
         <echo message="Mengkompilasi source code..."/>
+
+        <!-- file gambar -->
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**/*.jpg"/>
+                <include name="**/*.png"/>
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="src" includes="**/*.jpg, **/*.png, **/*.gif"/>
+        </copy>
+
         
         <javac srcdir="${src.dir}" 
                destdir="${classes.dir}"

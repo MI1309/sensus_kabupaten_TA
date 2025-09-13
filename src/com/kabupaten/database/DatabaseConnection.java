@@ -10,51 +10,36 @@ public class DatabaseConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/db_kabupaten";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "";
-    private static Connection connection;
-    
+
     /**
-     * Mendapatkan koneksi database
+     * Selalu membuat koneksi baru
      */
     public static Connection getConnection() {
         try {
-            if (connection == null || connection.isClosed()) {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-                System.out.println("Koneksi database berhasil!");
-            }
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
         } catch (ClassNotFoundException e) {
-            System.err.println("MySQL Driver tidak ditemukan: " + e.getMessage());
             JOptionPane.showMessageDialog(null, 
                 "MySQL Driver tidak ditemukan!\nPastikan mysql-connector-java telah ditambahkan ke classpath.",
                 "Error", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException("MySQL Driver tidak ditemukan", e);
         } catch (SQLException e) {
-            System.err.println("Gagal koneksi ke database: " + e.getMessage());
             JOptionPane.showMessageDialog(null, 
                 "Gagal koneksi ke database!\nPastikan MySQL server berjalan dan database tersedia.\n" + e.getMessage(),
                 "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return connection;
-    }
-    
-    /**
-     * Menutup koneksi database
-     */
-    public static void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                System.out.println("Koneksi database ditutup.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error menutup koneksi: " + e.getMessage());
+            throw new RuntimeException("Gagal koneksi ke database", e);
         }
     }
-    
+
     /**
      * Test koneksi database
      */
     public static boolean testConnection() {
-        Connection conn = getConnection();
-        return conn != null;
+        try (Connection conn = getConnection()) {
+            return conn != null && !conn.isClosed();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
