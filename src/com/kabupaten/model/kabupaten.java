@@ -11,19 +11,19 @@ public class kabupaten {
     private String kodeKabupaten;
     private String namaKabupaten;
     private String ibukota;
-    private double luasWilayah;
+    // private double luasWilayah;
     private int jumlahPenduduk;
     private int jumlahKecamatan;
     private int jumlahDesa;
-    private String batasUtara;
-    private String batasSelatan;
-    private String batasTimur;
-    private String batasBarat;
+    // private String batasUtara;
+    // private String batasSelatan;
+    // private String batasTimur;
+    // private String batasBarat;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
     // Untuk join dengan provinsi
-    private String namaProvinsi;
+    // private String namaProvinsi;
     
     // Constructors
     public kabupaten() {}
@@ -75,13 +75,13 @@ public class kabupaten {
         this.ibukota = ibukota;
     }
     
-    public double getLuasWilayah() {
-        return luasWilayah;
-    }
+    // public double getLuasWilayah() {
+    //     return luasWilayah;
+    // }
     
-    public void setLuasWilayah(double luasWilayah) {
-        this.luasWilayah = luasWilayah;
-    }
+    // public void setLuasWilayah(double luasWilayah) {
+    //     this.luasWilayah = luasWilayah;
+    // }
     
     public int getJumlahPenduduk() {
         return jumlahPenduduk;
@@ -107,37 +107,37 @@ public class kabupaten {
         this.jumlahDesa = jumlahDesa;
     }
     
-    public String getBatasUtara() {
-        return batasUtara;
-    }
+    // public String getBatasUtara() {
+    //     return batasUtara;
+    // }
     
-    public void setBatasUtara(String batasUtara) {
-        this.batasUtara = batasUtara;
-    }
+    // public void setBatasUtara(String batasUtara) {
+    //     this.batasUtara = batasUtara;
+    // }
     
-    public String getBatasSelatan() {
-        return batasSelatan;
-    }
+    // public String getBatasSelatan() {
+    //     return batasSelatan;
+    // }
     
-    public void setBatasSelatan(String batasSelatan) {
-        this.batasSelatan = batasSelatan;
-    }
+    // public void setBatasSelatan(String batasSelatan) {
+    //     this.batasSelatan = batasSelatan;
+    // }
     
-    public String getBatasTimur() {
-        return batasTimur;
-    }
+    // public String getBatasTimur() {
+    //     return batasTimur;
+    // }
     
-    public void setBatasTimur(String batasTimur) {
-        this.batasTimur = batasTimur;
-    }
+    // public void setBatasTimur(String batasTimur) {
+    //     this.batasTimur = batasTimur;
+    // }
     
-    public String getBatasBarat() {
-        return batasBarat;
-    }
+    // public String getBatasBarat() {
+    //     return batasBarat;
+    // }
     
-    public void setBatasBarat(String batasBarat) {
-        this.batasBarat = batasBarat;
-    }
+    // public void setBatasBarat(String batasBarat) {
+    //     this.batasBarat = batasBarat;
+    // }
     
     public Timestamp getCreatedAt() {
         return createdAt;
@@ -155,13 +155,6 @@ public class kabupaten {
         this.updatedAt = updatedAt;
     }
     
-    public String getNamaProvinsi() {
-        return namaProvinsi;
-    }
-    
-    public void setNamaProvinsi(String namaProvinsi) {
-        this.namaProvinsi = namaProvinsi;
-    }
     
     @Override
     public String toString() {

@@ -35,17 +35,17 @@ public class KabupatenDAO {
                 kabupaten.setKodeKabupaten(rs.getString("kode_kabupaten"));
                 kabupaten.setNamaKabupaten(rs.getString("nama_kabupaten"));
                 kabupaten.setIbukota(rs.getString("ibukota"));
-                kabupaten.setLuasWilayah(rs.getDouble("luas_wilayah"));
+                // kabupaten.setLuasWilayah(rs.getDouble("luas_wilayah"));
                 kabupaten.setJumlahPenduduk(rs.getInt("jumlah_penduduk"));
                 kabupaten.setJumlahKecamatan(rs.getInt("jumlah_kecamatan"));
                 kabupaten.setJumlahDesa(rs.getInt("jumlah_desa"));
-                kabupaten.setBatasUtara(rs.getString("batas_utara"));
-                kabupaten.setBatasSelatan(rs.getString("batas_selatan"));
-                kabupaten.setBatasTimur(rs.getString("batas_timur"));
-                kabupaten.setBatasBarat(rs.getString("batas_barat"));
+                // kabupaten.setBatasUtara(rs.getString("batas_utara"));
+                // kabupaten.setBatasSelatan(rs.getString("batas_selatan"));
+                // kabupaten.setBatasTimur(rs.getString("batas_timur"));
+                // kabupaten.setBatasBarat(rs.getString("batas_barat"));
                 kabupaten.setCreatedAt(rs.getTimestamp("created_at"));
                 kabupaten.setUpdatedAt(rs.getTimestamp("updated_at"));
-                kabupaten.setNamaProvinsi(rs.getString("nama_provinsi"));
+                // kabupaten.setNamaProvinsi(rs.getString("nama_provinsi"));
                 
                 kabupatenList.add(kabupaten);
             }
@@ -89,22 +89,22 @@ public class KabupatenDAO {
     public boolean addKabupaten(kabupaten kabupaten) {
         String sql = "INSERT INTO kabupaten (id_provinsi, kode_kabupaten, nama_kabupaten, " +
                     "ibukota, luas_wilayah, jumlah_penduduk, jumlah_kecamatan, jumlah_desa, " +
-                    "batas_utara, batas_selatan, batas_timur, batas_barat) " +
+                    ") " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, kabupaten.getIdProvinsi());
+            // stmt.setInt(1, kabupaten.getIdProvinsi());
             stmt.setString(2, kabupaten.getKodeKabupaten());
             stmt.setString(3, kabupaten.getNamaKabupaten());
             stmt.setString(4, kabupaten.getIbukota());
-            stmt.setDouble(5, kabupaten.getLuasWilayah());
+            // stmt.setDouble(5, kabupaten.getLuasWilayah());
             stmt.setInt(6, kabupaten.getJumlahPenduduk());
             stmt.setInt(7, kabupaten.getJumlahKecamatan());
             stmt.setInt(8, kabupaten.getJumlahDesa());
-            stmt.setString(9, kabupaten.getBatasUtara());
-            stmt.setString(10, kabupaten.getBatasSelatan());
-            stmt.setString(11, kabupaten.getBatasTimur());
-            stmt.setString(12, kabupaten.getBatasBarat());
+            // stmt.setString(9, kabupaten.getBatasUtara());
+            // stmt.setString(10, kabupaten.getBatasSelatan());
+            // stmt.setString(11, kabupaten.getBatasTimur());
+            // stmt.setString(12, kabupaten.getBatasBarat());
             
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
@@ -120,22 +120,21 @@ public class KabupatenDAO {
     public boolean updateKabupaten(kabupaten kabupaten) {
         String sql = "UPDATE kabupaten SET id_provinsi=?, kode_kabupaten=?, nama_kabupaten=?, " +
                     "ibukota=?, luas_wilayah=?, jumlah_penduduk=?, jumlah_kecamatan=?, jumlah_desa=?, " +
-                    "batas_utara=?, batas_selatan=?, batas_timur=?, batas_barat=? " +
                     "WHERE id_kabupaten=?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, kabupaten.getIdProvinsi());
+            // stmt.setInt(1, kabupaten.getIdProvinsi());
             stmt.setString(2, kabupaten.getKodeKabupaten());
             stmt.setString(3, kabupaten.getNamaKabupaten());
             stmt.setString(4, kabupaten.getIbukota());
-            stmt.setDouble(5, kabupaten.getLuasWilayah());
+            // stmt.setDouble(5, kabupaten.getLuasWilayah());
             stmt.setInt(6, kabupaten.getJumlahPenduduk());
             stmt.setInt(7, kabupaten.getJumlahKecamatan());
             stmt.setInt(8, kabupaten.getJumlahDesa());
-            stmt.setString(9, kabupaten.getBatasUtara());
-            stmt.setString(10, kabupaten.getBatasSelatan());
-            stmt.setString(11, kabupaten.getBatasTimur());
-            stmt.setString(12, kabupaten.getBatasBarat());
+            // stmt.setString(9, kabupaten.getBatasUtara());
+            // stmt.setString(10, kabupaten.getBatasSelatan());
+            // stmt.setString(11, kabupaten.getBatasTimur());
+            // stmt.setString(12, kabupaten.getBatasBarat());
             stmt.setInt(13, kabupaten.getIdKabupaten());
             
             int rowsAffected = stmt.executeUpdate();
@@ -190,21 +189,21 @@ public class KabupatenDAO {
     private kabupaten mapResultSetToKabupaten(ResultSet rs) throws SQLException {
         kabupaten kabupaten = new kabupaten();
         kabupaten.setIdKabupaten(rs.getInt("id_kabupaten"));
-        kabupaten.setIdProvinsi(rs.getInt("id_provinsi"));
+        // kabupaten.setIdProvinsi(rs.getInt("id_provinsi"));
         kabupaten.setKodeKabupaten(rs.getString("kode_kabupaten"));
         kabupaten.setNamaKabupaten(rs.getString("nama_kabupaten"));
         kabupaten.setIbukota(rs.getString("ibukota"));
-        kabupaten.setLuasWilayah(rs.getDouble("luas_wilayah"));
+        // kabupaten.setLuasWilayah(rs.getDouble("luas_wilayah"));
         kabupaten.setJumlahPenduduk(rs.getInt("jumlah_penduduk"));
         kabupaten.setJumlahKecamatan(rs.getInt("jumlah_kecamatan"));
         kabupaten.setJumlahDesa(rs.getInt("jumlah_desa"));
-        kabupaten.setBatasUtara(rs.getString("batas_utara"));
-        kabupaten.setBatasSelatan(rs.getString("batas_selatan"));
-        kabupaten.setBatasTimur(rs.getString("batas_timur"));
-        kabupaten.setBatasBarat(rs.getString("batas_barat"));
+        // kabupaten.setBatasUtara(rs.getString("batas_utara"));
+        // kabupaten.setBatasSelatan(rs.getString("batas_selatan"));
+        // kabupaten.setBatasTimur(rs.getString("batas_timur"));
+        // kabupaten.setBatasBarat(rs.getString("batas_barat"));
         kabupaten.setCreatedAt(rs.getTimestamp("created_at"));
         kabupaten.setUpdatedAt(rs.getTimestamp("updated_at"));
-        kabupaten.setNamaProvinsi(rs.getString("nama_provinsi"));
+        // kabupaten.setNamaProvinsi(rs.getString("nama_provinsi"));
         return kabupaten;
     }
 }

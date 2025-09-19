@@ -292,11 +292,9 @@ public class dashboard_guest extends JFrame {
                 for (kabupaten k : kabupatenList) {
                     Object[] row = {
                         k.getIdKabupaten(),
-                        k.getNamaProvinsi(),
                         k.getKodeKabupaten(),
                         k.getNamaKabupaten(),
                         k.getIbukota(),
-                        String.format("%.2f", k.getLuasWilayah()),
                         String.format("%,d", k.getJumlahPenduduk()),
                         k.getJumlahKecamatan(),
                         k.getJumlahDesa(),
@@ -337,12 +335,12 @@ public class dashboard_guest extends JFrame {
                 for (kabupaten k : kabupatenList) {
                     Object[] row = {
                         k.getIdKabupaten(),
-                        k.getNamaProvinsi(),
+                        // k.getNamaProvinsi(),
                         k.getKodeKabupaten(),
                         k.getNamaKabupaten(),
                         k.getIbukota(),
-                        String.format("%.2f", k.getLuasWilayah()),
-                        String.format("%,d", k.getJumlahPenduduk()),
+                        // String.format("%.2f", k.getLuasWilayah()),
+                        // String.format("%,d", k.getJumlahPenduduk()),
                         k.getJumlahKecamatan(),
                         k.getJumlahDesa(),
                         k.getCreatedAt() != null ? k.getCreatedAt().toString().substring(0, 19) : ""
