@@ -116,7 +116,7 @@ public class dashboard_admin extends JFrame {
         // akhir spacer
         tabbedPane.addTab("Kelola Ketua RT/RW",  new CrudKetuaRTRWPanel());
         tabbedPane.addTab("Kelola Warga", new CrudWargaPanel());
-        tabbedPane.addTab("Kelola Kecamatan", new CrudKKecamatanPanel());
+        tabbedPane.addTab("Kelola Kecamatan", new CrudKecamatanPanel());
         tabbedPane.addTab("Kelola Desa", new CrudDesaPanel());
 
         // Footer panel

@@ -37,14 +37,13 @@ public class CrudWargaPanel extends JPanel {
         btnHapus.addActionListener(e -> hapusData());
 
         // Data awal
-        service.tambahRTRW("Kecamatan A", 1, 1, "Jl. Mawar", "Aktif");
-        service.tambahRTRW("Kecamatan B", 2, 3, "Jl. Melati", "Non-Aktif");
+        service.addRTRW("Kecamatan A", 1, 1, "Jl. Mawar", "Aktif");
         refreshTable();
     }
 
     private void refreshTable() {
         tableModel.setRowCount(0);
-        for (RTRWMODEL r : service.getAllRTRW()) {
+        for (RTRWMODEL r : service.getAllRTRWModel()) {
             tableModel.addRow(new Object[]{r.getId(), r.getKecamatan(), r.getNomorRW(), r.getNomorRT(), r.getAlamat(), r.getStatus()});
         }
     }
@@ -56,7 +55,7 @@ public class CrudWargaPanel extends JPanel {
         String alamat = JOptionPane.showInputDialog("Alamat:");
         String status = JOptionPane.showInputDialog("Status:");
 
-        service.tambahRTRW(kecamatan, rw, rt, alamat, status);
+        service.addRTRW(kecamatan, rw, rt, alamat, status);
         refreshTable();
     }
 

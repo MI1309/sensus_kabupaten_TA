@@ -4,6 +4,7 @@ import com.kabupaten.database.DatabaseConnection;
 import com.kabupaten.sistem.LoadingScreen;
 import com.kabupaten.view.LoginFrame;
 import com.kabupaten.view.dashboard_admin;
+import com.kabupaten.view.dashboard_guest;
 
 import javax.swing.*;
 
