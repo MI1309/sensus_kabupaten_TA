@@ -10,12 +10,16 @@ import java.util.List;
  * Data Access Object untuk operasi CRUD RTRW
  */
 public class RTRWDAO {
+
+    // buat koneksi database
     private Connection connection;
     
     public RTRWDAO() {
         this.connection = DatabaseConnection.getConnection();
     }
-    
+    // end koneksi database
+
+
     /**
      * Mengambil semua data RTRW dengan join desa
      */
@@ -38,6 +42,8 @@ public class RTRWDAO {
         
         return rtrwList;
     }
+
+    // end getAllRTRW
     
     /**
      * Mencari RTRW berdasarkan RT, RW, atau nama ketua
@@ -66,6 +72,7 @@ public class RTRWDAO {
         
         return rtrwList;
     }
+    // end searchRTRW
     
     /**
      * Menambah RTRW baru
@@ -75,6 +82,13 @@ public class RTRWDAO {
                     "VALUES (?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            System.out.println("DEBUG RTRW insert: id_desa=" + rtrw.getIdDesa() +
+                            ", rt=" + rtrw.getRt() +
+                            ", rw=" + rtrw.getRw() +
+                            ", nama_ketua=" + rtrw.getNamaKetua() +
+                            ", kontak=" + rtrw.getKontak() +
+                            ", alamat=" + rtrw.getAlamat());
+            
             stmt.setInt(1, rtrw.getIdDesa());
             stmt.setString(2, rtrw.getRt());
             stmt.setString(3, rtrw.getRw());
@@ -83,12 +97,15 @@ public class RTRWDAO {
             stmt.setString(6, rtrw.getAlamat());
             
             int rowsAffected = stmt.executeUpdate();
+            System.out.println("Rows affected: " + rowsAffected);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("Error menambah RTRW: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
+    // end addRTRW
+
     
     /**
      * Mengupdate data RTRW
@@ -113,6 +130,7 @@ public class RTRWDAO {
             return false;
         }
     }
+    // end updateRTRW
     
     /**
      * Menghapus RTRW
@@ -129,6 +147,7 @@ public class RTRWDAO {
             return false;
         }
     }
+    // end deleteRTRW
     
     /**
      * Mengambil RTRW berdasarkan ID
@@ -151,6 +170,7 @@ public class RTRWDAO {
         
         return null;
     }
+    // end getRTRWById
     
     /**
      * Mengambil RTRW berdasarkan ID Desa
@@ -176,6 +196,7 @@ public class RTRWDAO {
         
         return rtrwList;
     }
+    // end getRTRWByDesaId
     
     /**
      * Mengambil RTRW berdasarkan RT dan RW
@@ -200,6 +221,7 @@ public class RTRWDAO {
         
         return null;
     }
+    // end getRTRWByRTRW
     
     /**
      * Helper method untuk mapping ResultSet ke object RTRW
@@ -226,4 +248,5 @@ public class RTRWDAO {
         
         return rtrw;
     }
+    // end mapResultSetToRTRW
 }

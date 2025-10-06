@@ -36,8 +36,7 @@ public class CrudWargaPanel extends JPanel {
         btnEdit.addActionListener(e -> editData());
         btnHapus.addActionListener(e -> hapusData());
 
-        // Data awal
-        service.addRTRW("Kecamatan A", 1, 1, "Jl. Mawar", "Aktif");
+        // Load initial data
         refreshTable();
     }
 

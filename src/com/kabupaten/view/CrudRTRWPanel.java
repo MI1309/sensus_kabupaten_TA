@@ -122,37 +122,66 @@ public class CrudRTRWPanel extends JPanel {
     }
 
     private void tambahData() {
-        String kecamatan = JOptionPane.showInputDialog(this, "Kecamatan/Desa:");
-        if (kecamatan == null || kecamatan.trim().isEmpty()) return;
-        
-        String rwStr = JOptionPane.showInputDialog(this, "RW:");
-        if (rwStr == null || rwStr.trim().isEmpty()) return;
-        
-        String rtStr = JOptionPane.showInputDialog(this, "RT:");
-        if (rtStr == null || rtStr.trim().isEmpty()) return;
-        
-        String namaKetua = JOptionPane.showInputDialog(this, "Nama Ketua (opsional):");
-        String kontak = JOptionPane.showInputDialog(this, "Kontak (opsional):");
-        String alamat = JOptionPane.showInputDialog(this, "Alamat:");
-        
-        try {
-            int rw = Integer.parseInt(rwStr);
-            int rt = Integer.parseInt(rtStr);
-            
-            boolean success = service.addRTRW(kecamatan, rw, rt, alamat, "Aktif");
-            
-            if (success) {
-                JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
-                refreshTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal menambahkan data!", "Error", JOptionPane.ERROR_MESSAGE);
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+
+        JTextField txtKecamatan = new JTextField();
+        JTextField txtRW = new JTextField();
+        JTextField txtRT = new JTextField();
+        JTextField txtNamaKetua = new JTextField();
+        JTextField txtKontak = new JTextField();
+        JTextField txtAlamat = new JTextField();
+
+        panel.add(new JLabel("Kecamatan/Desa:"));
+        panel.add(txtKecamatan);
+        panel.add(new JLabel("RW:"));
+        panel.add(txtRW);
+        panel.add(new JLabel("RT:"));
+        panel.add(txtRT);
+        panel.add(new JLabel("Nama Ketua:"));
+        panel.add(txtNamaKetua);
+        panel.add(new JLabel("Kontak:"));
+        panel.add(txtKontak);
+        panel.add(new JLabel("Alamat:"));
+        panel.add(txtAlamat);
+
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            panel,
+            "Tambah Data RTRW",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String kecamatan = txtKecamatan.getText().trim();
+                int rw = Integer.parseInt(txtRW.getText().trim());
+                int rt = Integer.parseInt(txtRT.getText().trim());
+                String namaKetua = txtNamaKetua.getText().trim();
+                String kontak = txtKontak.getText().trim();
+                String alamat = txtAlamat.getText().trim();
+
+                if (kecamatan.isEmpty() || alamat.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Kecamatan dan Alamat wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                boolean success = service.addRTRW(kecamatan, rw, rt, namaKetua, kontak, alamat, "Aktif");
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
+                    refreshTable();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menambahkan data!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "RT dan RW harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "RT dan RW harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     private void editData() {
         int selectedRow = table.getSelectedRow();

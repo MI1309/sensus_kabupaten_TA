@@ -1,9 +1,14 @@
 package com.kabupaten.services;
 
 import com.kabupaten.dao.RTRWDAO;
+import com.kabupaten.database.DatabaseConnection;
 import com.kabupaten.model.RTRW;
 import com.kabupaten.model.RTRWMODEL;
 import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class RTRWSERVICES {
@@ -50,7 +55,7 @@ public class RTRWSERVICES {
      *  INSERT
      * =========================== */
 
-    public boolean addRTRW(String kecamatan, int rw, int rt, String alamat, String status) {
+    public boolean addRTRW(String kecamatan, int rw, int rt, String namaKetua, String kontak, String alamat, String status) {
         try {
             RTRW rtrw = new RTRW();
             rtrw.setIdDesa(getDesaIdByName(kecamatan));
@@ -59,8 +64,8 @@ public class RTRWSERVICES {
             rtrw.setAlamat(alamat);
             rtrw.setStatus(status);
             rtrw.setKecamatan(kecamatan);
-            rtrw.setNamaKetua("");
-            rtrw.setKontak("");
+            rtrw.setNamaKetua(namaKetua);
+            rtrw.setKontak(kontak);
 
             return rtrwDAO.addRTRW(rtrw);
         } catch (Exception e) {
@@ -68,6 +73,9 @@ public class RTRWSERVICES {
             return false;
         }
     }
+
+
+
 
     /** ===========================
      *  UPDATE
@@ -121,13 +129,25 @@ public class RTRWSERVICES {
         model.setStatus(rtrw.getStatus());
         model.setCreatedAt(rtrw.getCreatedAt());
         model.setUpdatedAt(rtrw.getUpdatedAt());
-        return model;
+        return model;   
     }
 
-    private int getDesaIdByName(String namaKecamatan) {
-        // TODO: implementasi lookup ID desa dari nama kecamatan
-        return 1;
+    public int getDesaIdByName(String namaDesa) {
+        int id = -1;
+        String sql = "SELECT id_desa FROM desa WHERE nama_desa = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, namaDesa);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                id = rs.getInt("id_desa");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return id;
     }
+
 
     public boolean validateRTRW(String kecamatan, int rw, int rt, String alamat) {
         return !(kecamatan == null || kecamatan.trim().isEmpty() ||
