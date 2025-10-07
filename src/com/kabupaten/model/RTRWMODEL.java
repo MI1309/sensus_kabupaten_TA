@@ -2,6 +2,8 @@ package com.kabupaten.model;
 
 import java.sql.Timestamp;
 
+import javax.print.DocFlavor.STRING;
+
 /**
  * Alias untuk class RTRW untuk kompatibilitas dengan kode existing
  * Ini adalah wrapper/alias untuk memudahkan migrasi
@@ -13,13 +15,23 @@ public class RTRWMODEL {
     private String rw;
     private String namaKetua;
     private String kontak;
+    private String desa;
     private String alamat;
-    private String kecamatan;
     private String status;
     private String namaDesa;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
+    // desa function
+    public String getDesa() {
+        return desa;
+    }
+
+    public void setDesa(String desa) {
+        this.desa = desa;
+    }
+
+
     // Default constructor
     public RTRWMODEL() {
     }
@@ -123,14 +135,6 @@ public class RTRWMODEL {
         this.alamat = alamat;
     }
     
-    public String getKecamatan() {
-        return kecamatan;
-    }
-    
-    public void setKecamatan(String kecamatan) {
-        this.kecamatan = kecamatan;
-    }
-    
     public String getStatus() {
         return status;
     }
@@ -145,9 +149,6 @@ public class RTRWMODEL {
     
     public void setNamaDesa(String namaDesa) {
         this.namaDesa = namaDesa;
-        if (this.kecamatan == null) {
-            this.kecamatan = namaDesa;
-        }
     }
     
     public Timestamp getCreatedAt() {
@@ -176,7 +177,7 @@ public class RTRWMODEL {
                 ", namaKetua='" + namaKetua + '\'' +
                 ", kontak='" + kontak + '\'' +
                 ", alamat='" + alamat + '\'' +
-                ", kecamatan='" + kecamatan + '\'' +
+                // ", kecamatan='" + kecamatan + '\'' +
                 ", status='" + status + '\'' +
                 '}';
     }

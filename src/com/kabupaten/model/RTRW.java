@@ -14,6 +14,7 @@ public class RTRW {
     private String kontak;
     private String alamat;
     private Timestamp createdAt;
+    private String desa;
     private Timestamp updatedAt;
     
     // Field tambahan untuk join dengan tabel desa dan kompatibilitas dengan view
@@ -160,6 +161,14 @@ public class RTRW {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    public String getDesa() {
+    return desa;
+}
+
+    public void setDesa(String desa) {
+        this.desa = desa;
     }
     
     public void setNomorRT(int nomorRT) {

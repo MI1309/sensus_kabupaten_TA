@@ -30,7 +30,7 @@ public class CrudRTRWPanel extends JPanel {
 
         // Tabel
         tableModel = new DefaultTableModel(
-            new Object[]{"ID", "Desa/Kecamatan", "RW", "RT", "Nama Ketua", "Kontak", "Alamat"}, 0
+            new Object[]{"ID", "Desa", "RW", "RT", "Nama Ketua", "Kontak", "Alamat"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -124,15 +124,15 @@ public class CrudRTRWPanel extends JPanel {
     private void tambahData() {
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
 
-        JTextField txtKecamatan = new JTextField();
+        JTextField txtDesa = new JTextField();
         JTextField txtRW = new JTextField();
         JTextField txtRT = new JTextField();
         JTextField txtNamaKetua = new JTextField();
         JTextField txtKontak = new JTextField();
         JTextField txtAlamat = new JTextField();
 
-        panel.add(new JLabel("Kecamatan/Desa:"));
-        panel.add(txtKecamatan);
+        panel.add(new JLabel("Desa:"));
+        panel.add(txtDesa);
         panel.add(new JLabel("RW:"));
         panel.add(txtRW);
         panel.add(new JLabel("RT:"));
@@ -154,19 +154,19 @@ public class CrudRTRWPanel extends JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String kecamatan = txtKecamatan.getText().trim();
+                String NamaDesa = txtDesa.getText().trim();
                 int rw = Integer.parseInt(txtRW.getText().trim());
                 int rt = Integer.parseInt(txtRT.getText().trim());
                 String namaKetua = txtNamaKetua.getText().trim();
                 String kontak = txtKontak.getText().trim();
                 String alamat = txtAlamat.getText().trim();
 
-                if (kecamatan.isEmpty() || alamat.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Kecamatan dan Alamat wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                if (NamaDesa.isEmpty() || alamat.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Desa dan Alamat wajib diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
-                boolean success = service.addRTRW(kecamatan, rw, rt, namaKetua, kontak, alamat, "Aktif");
+                boolean success = service.addRTRW(NamaDesa, rw, rt, namaKetua, kontak, alamat, "Aktif");
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
                     refreshTable();
@@ -198,9 +198,9 @@ public class CrudRTRWPanel extends JPanel {
             return;
         }
 
-        String kecamatan = JOptionPane.showInputDialog(this, "Kecamatan/Desa:", 
+        String NamaDesa = JOptionPane.showInputDialog(this, "Desa:", 
             rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "");
-        if (kecamatan == null) return;
+        if (NamaDesa == null) return;
         
         String rwStr = JOptionPane.showInputDialog(this, "RW:", rtrw.getRw());
         if (rwStr == null) return;
@@ -221,7 +221,7 @@ public class CrudRTRWPanel extends JPanel {
             int rw = Integer.parseInt(rwStr);
             int rt = Integer.parseInt(rtStr);
             
-            boolean success = service.updateRTRW(id, kecamatan, rw, rt, alamat, "Aktif");
+            boolean success = service.updateRTRW(id, NamaDesa, rw, rt, alamat, "Aktif");
             
             if (success) {
                 JOptionPane.showMessageDialog(this, "Data berhasil diupdate!");
@@ -281,7 +281,7 @@ public class CrudRTRWPanel extends JPanel {
             String detail = String.format(
                 "=== DETAIL RTRW ===\n\n" +
                 "ID: %d\n" +
-                "Desa/Kecamatan: %s\n" +
+                "Desa: %s\n" +
                 "RT: %s\n" +
                 "RW: %s\n" +
                 "Nama Ketua: %s\n" +

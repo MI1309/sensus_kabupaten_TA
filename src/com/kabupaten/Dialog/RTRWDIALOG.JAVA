@@ -43,7 +43,7 @@ public class RTRWFormDialog extends JDialog {
 
         // Kecamatan/Desa
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Kecamatan/Desa:"), gbc);
+        formPanel.add(new JLabel("Desa:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
         txtKecamatan = new JTextField(20);
         formPanel.add(txtKecamatan, gbc);
@@ -148,7 +148,7 @@ public class RTRWFormDialog extends JDialog {
 
     private boolean validateInput() {
         if (txtKecamatan.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama Kecamatan/Desa tidak boleh kosong!");
+            JOptionPane.showMessageDialog(this, "Desa tidak boleh kosong!");
             txtKecamatan.requestFocus();
             return false;
         }
@@ -185,7 +185,7 @@ public class RTRWFormDialog extends JDialog {
     }
 
     private void saveData() {
-        rtrw.setKecamatan(txtKecamatan.getText().trim());
+        rtrw.setNamaDesa(txtKecamatan.getText().trim());
         rtrw.setRw(txtRW.getText().trim());
         rtrw.setRt(txtRT.getText().trim());
         rtrw.setNamaKetua(txtNamaKetua.getText().trim());

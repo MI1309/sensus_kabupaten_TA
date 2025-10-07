@@ -35,35 +35,23 @@ public class RTRWSERVICES {
         return rtrwModelList;
     }
 
-    public RTRW getRTRWById(int id) {
-        return rtrwDAO.getRTRWById(id);
-    }
-
-    public List<RTRW> getRTRWByDesa(int idDesa) {
-        return rtrwDAO.getRTRWByDesaId(idDesa);
-    }
-
     public List<RTRW> searchRTRW(String keyword) {
         return rtrwDAO.searchRTRW(keyword);
-    }
-
-    public boolean isRTRWExists(String rt, String rw, int idDesa) {
-        return rtrwDAO.getRTRWByRTRW(rt, rw, idDesa) != null;
     }
 
     /** ===========================
      *  INSERT
      * =========================== */
 
-    public boolean addRTRW(String kecamatan, int rw, int rt, String namaKetua, String kontak, String alamat, String status) {
+    public boolean addRTRW(String desa, int rw, int rt, String namaKetua, String kontak, String alamat, String status) {
         try {
             RTRW rtrw = new RTRW();
-            rtrw.setIdDesa(getDesaIdByName(kecamatan));
+            rtrw.setNamaDesa(desa);
             rtrw.setRw(String.valueOf(rw));
             rtrw.setRt(String.valueOf(rt));
             rtrw.setAlamat(alamat);
             rtrw.setStatus(status);
-            rtrw.setKecamatan(kecamatan);
+            rtrw.setDesa(desa);
             rtrw.setNamaKetua(namaKetua);
             rtrw.setKontak(kontak);
 
@@ -81,16 +69,16 @@ public class RTRWSERVICES {
      *  UPDATE
      * =========================== */
 
-    public boolean updateRTRW(int id, String kecamatan, int rw, int rt, String alamat, String status) {
+    public boolean updateRTRW(int id, String desa, int rw, int rt, String alamat, String status) {
         try {
             RTRW rtrw = new RTRW();
             rtrw.setIdRtrw(id);
-            rtrw.setIdDesa(getDesaIdByName(kecamatan));
+            rtrw.setIdDesa(getDesaIdByName(desa));
             rtrw.setRw(String.valueOf(rw));
             rtrw.setRt(String.valueOf(rt));
             rtrw.setAlamat(alamat);
             rtrw.setStatus(status);
-            rtrw.setKecamatan(kecamatan);
+            rtrw.setDesa(desa);
 
             return rtrwDAO.updateRTRW(rtrw);
         } catch (Exception e) {
@@ -99,8 +87,8 @@ public class RTRWSERVICES {
         }
     }
 
-    public RTRWMODEL updateRTRWModel(int id, String kecamatan, int rw, int rt, String alamat, String status) {
-        boolean success = updateRTRW(id, kecamatan, rw, rt, alamat, status);
+    public RTRWMODEL updateRTRWModel(int id, String desa, int rw, int rt, String alamat, String status) {
+        boolean success = updateRTRW(id, desa, rw, rt, alamat, status);
         return success ? convertToModel(rtrwDAO.getRTRWById(id)) : null;
     }
 
@@ -125,7 +113,7 @@ public class RTRWSERVICES {
         model.setAlamat(rtrw.getAlamat());
         model.setNamaKetua(rtrw.getNamaKetua());
         model.setKontak(rtrw.getKontak());
-        model.setKecamatan(rtrw.getKecamatan());
+        model.setDesa(rtrw.getDesa());
         model.setStatus(rtrw.getStatus());
         model.setCreatedAt(rtrw.getCreatedAt());
         model.setUpdatedAt(rtrw.getUpdatedAt());
@@ -149,8 +137,8 @@ public class RTRWSERVICES {
     }
 
 
-    public boolean validateRTRW(String kecamatan, int rw, int rt, String alamat) {
-        return !(kecamatan == null || kecamatan.trim().isEmpty() ||
+    public boolean validateRTRW(String desa, int rw, int rt, String alamat) {
+        return !(desa == null || desa.trim().isEmpty() ||
                  rw <= 0 || rt <= 0 ||
                  alamat == null || alamat.trim().isEmpty());
     }

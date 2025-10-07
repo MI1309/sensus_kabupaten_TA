@@ -112,12 +112,12 @@ public class dashboard_guest extends JFrame {
         // matiin supaya tab dummy nggak bisa diklik
         
         // Tambah tab untuk tiap menu
-        tabbedPane.addTab("Kelola RT/RW", new CrudRTRWPanel());
-        // akhir spacer
-        tabbedPane.addTab("Kelola Ketua RT/RW",  new CrudKetuaRTRWPanel());
-        tabbedPane.addTab("Kelola Warga", new CrudWargaPanel());
-        tabbedPane.addTab("Kelola Kecamatan", new CrudKecamatanPanel());
-        tabbedPane.addTab("Kelola Desa", new CrudDesaPanel());
+        // tabbedPane.addTab("Kelola RT/RW", new CrudRTRWPanel());
+        // // akhir spacer
+        // tabbedPane.addTab("Kelola Ketua RT/RW",  new CrudKetuaRTRWPanel());
+        // tabbedPane.addTab("Kelola Warga", new CrudWargaPanel());
+        // tabbedPane.addTab("Kelola Kecamatan", new CrudKecamatanPanel());
+        // tabbedPane.addTab("Kelola Desa", new CrudDesaPanel());
 
         // Footer panel
         JPanel footerPanel = new JPanel();
