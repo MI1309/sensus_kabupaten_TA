@@ -1,6 +1,6 @@
 package com.kabupaten.view;
 
-import com.kabupaten.model.kabupaten;
+import com.kabupaten.model.Kabupaten;
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,9 +9,9 @@ public class guest_dashboard extends JDialog {
     private JTextField txtNamaKabupaten;
     private JTextField txtKode;
     private JButton btnSave, btnCancel;
-    private kabupaten kabupatenData;
+    private Kabupaten kabupatenData;
 
-    public guest_dashboard(Frame parent, String title, kabupaten data) {
+    public guest_dashboard(Frame parent, String title, Kabupaten data) {
         super(parent, title, true);
         this.kabupatenData = data;
         initComponents();

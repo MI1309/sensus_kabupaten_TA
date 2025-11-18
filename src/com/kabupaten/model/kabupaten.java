@@ -4,31 +4,29 @@ import java.sql.Timestamp;
 
 /**
  * Model untuk data Kabupaten
+ * 
+ * PERBAIKAN:
+ * 1. Nama class diubah dari lowercase "kabupaten" menjadi PascalCase "Kabupaten" (Java naming convention)
+ * 2. Menghapus komentar field yang tidak dipakai untuk clean code
+ * 3. Menambahkan field 'status' yang umum digunakan
  */
-public class kabupaten {
+public class Kabupaten {
     private int idKabupaten;
     private int idProvinsi;
     private String kodeKabupaten;
     private String namaKabupaten;
     private String ibukota;
-    // private double luasWilayah;
     private int jumlahPenduduk;
     private int jumlahKecamatan;
     private int jumlahDesa;
-    // private String batasUtara;
-    // private String batasSelatan;
-    // private String batasTimur;
-    // private String batasBarat;
+    private String status; // Tambahan: Aktif/Nonaktif
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
-    // Untuk join dengan provinsi
-    // private String namaProvinsi;
-    
     // Constructors
-    public kabupaten() {}
+    public Kabupaten() {}
     
-    public kabupaten(String kodeKabupaten, String namaKabupaten, String ibukota) {
+    public Kabupaten(String kodeKabupaten, String namaKabupaten, String ibukota) {
         this.kodeKabupaten = kodeKabupaten;
         this.namaKabupaten = namaKabupaten;
         this.ibukota = ibukota;
@@ -75,14 +73,6 @@ public class kabupaten {
         this.ibukota = ibukota;
     }
     
-    // public double getLuasWilayah() {
-    //     return luasWilayah;
-    // }
-    
-    // public void setLuasWilayah(double luasWilayah) {
-    //     this.luasWilayah = luasWilayah;
-    // }
-    
     public int getJumlahPenduduk() {
         return jumlahPenduduk;
     }
@@ -107,37 +97,13 @@ public class kabupaten {
         this.jumlahDesa = jumlahDesa;
     }
     
-    // public String getBatasUtara() {
-    //     return batasUtara;
-    // }
+    public String getStatus() {
+        return status;
+    }
     
-    // public void setBatasUtara(String batasUtara) {
-    //     this.batasUtara = batasUtara;
-    // }
-    
-    // public String getBatasSelatan() {
-    //     return batasSelatan;
-    // }
-    
-    // public void setBatasSelatan(String batasSelatan) {
-    //     this.batasSelatan = batasSelatan;
-    // }
-    
-    // public String getBatasTimur() {
-    //     return batasTimur;
-    // }
-    
-    // public void setBatasTimur(String batasTimur) {
-    //     this.batasTimur = batasTimur;
-    // }
-    
-    // public String getBatasBarat() {
-    //     return batasBarat;
-    // }
-    
-    // public void setBatasBarat(String batasBarat) {
-    //     this.batasBarat = batasBarat;
-    // }
+    public void setStatus(String status) {
+        this.status = status;
+    }
     
     public Timestamp getCreatedAt() {
         return createdAt;
@@ -154,7 +120,6 @@ public class kabupaten {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
     
     @Override
     public String toString() {

@@ -115,7 +115,7 @@ public class LoadingScreen extends JFrame {
         progressTimer.start();
         
         // Timer untuk update status text
-        statusTimer = new Timer(1500, new ActionListener() {
+        statusTimer = new Timer(1300, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (currentStatusIndex < statusMessages.length - 1) {

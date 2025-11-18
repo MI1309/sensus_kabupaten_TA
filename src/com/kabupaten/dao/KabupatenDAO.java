@@ -1,7 +1,7 @@
 package com.kabupaten.dao;
 
 import com.kabupaten.database.DatabaseConnection;
-import com.kabupaten.model.kabupaten;
+import com.kabupaten.model.Kabupaten;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +19,8 @@ public class KabupatenDAO {
     /**
      * Mengambil semua data kabupaten dengan join provinsi
      */
-    public List<kabupaten> getAllKabupaten() {
-        List<kabupaten> kabupatenList = new ArrayList<>();
+    public List<Kabupaten> getAllKabupaten() {
+        List<Kabupaten> kabupatenList = new ArrayList<>();
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
                     "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
                     "ORDER BY k.nama_kabupaten";
@@ -29,7 +29,7 @@ public class KabupatenDAO {
              ResultSet rs = stmt.executeQuery()) {
             
             while (rs.next()) {
-                kabupaten kabupaten = new kabupaten();
+                Kabupaten kabupaten = new Kabupaten();
                 kabupaten.setIdKabupaten(rs.getInt("id_kabupaten"));
                 kabupaten.setIdProvinsi(rs.getInt("id_provinsi"));
                 kabupaten.setKodeKabupaten(rs.getString("kode_kabupaten"));
@@ -59,8 +59,8 @@ public class KabupatenDAO {
     /**
      * Mencari kabupaten berdasarkan nama
      */
-    public List<kabupaten> searchKabupaten(String keyword) {
-        List<kabupaten> kabupatenList = new ArrayList<>();
+    public List<Kabupaten> searchKabupaten(String keyword) {
+        List<Kabupaten> kabupatenList = new ArrayList<>();
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
                     "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
                     "WHERE k.nama_kabupaten LIKE ? OR k.kode_kabupaten LIKE ? " +
@@ -72,7 +72,7 @@ public class KabupatenDAO {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    kabupaten kabupaten = mapResultSetToKabupaten(rs);
+                    Kabupaten kabupaten = mapResultSetToKabupaten(rs);
                     kabupatenList.add(kabupaten);
                 }
             }
@@ -86,7 +86,7 @@ public class KabupatenDAO {
     /**
      * Menambah kabupaten baru
      */
-    public boolean addKabupaten(kabupaten kabupaten) {
+    public boolean addKabupaten(Kabupaten kabupaten) {
         String sql = "INSERT INTO kabupaten (id_provinsi, kode_kabupaten, nama_kabupaten, " +
                     "ibukota, luas_wilayah, jumlah_penduduk, jumlah_kecamatan, jumlah_desa, " +
                     ") " +
@@ -117,7 +117,7 @@ public class KabupatenDAO {
     /**
      * Mengupdate data kabupaten
      */
-    public boolean updateKabupaten(kabupaten kabupaten) {
+    public boolean updateKabupaten(Kabupaten kabupaten) {
         String sql = "UPDATE kabupaten SET id_provinsi=?, kode_kabupaten=?, nama_kabupaten=?, " +
                     "ibukota=?, luas_wilayah=?, jumlah_penduduk=?, jumlah_kecamatan=?, jumlah_desa=?, " +
                     "WHERE id_kabupaten=?";
@@ -164,7 +164,7 @@ public class KabupatenDAO {
     /**
      * Mengambil kabupaten berdasarkan ID
      */
-    public kabupaten getKabupatenById(int idKabupaten) {
+    public Kabupaten getKabupatenById(int idKabupaten) {
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
                     "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
                     "WHERE k.id_kabupaten = ?";
@@ -186,8 +186,8 @@ public class KabupatenDAO {
     /**
      * Helper method untuk mapping ResultSet ke object Kabupaten
      */
-    private kabupaten mapResultSetToKabupaten(ResultSet rs) throws SQLException {
-        kabupaten kabupaten = new kabupaten();
+    private Kabupaten mapResultSetToKabupaten(ResultSet rs) throws SQLException {
+        Kabupaten kabupaten = new Kabupaten();
         kabupaten.setIdKabupaten(rs.getInt("id_kabupaten"));
         // kabupaten.setIdProvinsi(rs.getInt("id_provinsi"));
         kabupaten.setKodeKabupaten(rs.getString("kode_kabupaten"));

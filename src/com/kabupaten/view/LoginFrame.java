@@ -15,6 +15,7 @@ public class LoginFrame extends JFrame {
     private JPasswordField txtPassword;
     private JButton btnLogin;
     private JButton btnExit;
+    private String userRole; // Menyimpan role user yang login
 
     public LoginFrame() {
         initComponents();
@@ -178,7 +179,7 @@ public class LoginFrame extends JFrame {
         buttonPanel.add(btnExit);
 
         gbc.gridy = 5;
-            gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(buttonPanel, gbc);
 
         shadowPanel.add(panel, BorderLayout.CENTER);
@@ -219,7 +220,7 @@ public class LoginFrame extends JFrame {
         txtPassword.addActionListener(e -> performLogin());
     }
 
-    // route page
+    // route page berdasarkan role
     private void performLogin() {
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword());
@@ -233,17 +234,22 @@ public class LoginFrame extends JFrame {
         }
 
         if (validateLogin(username, password)) {
-            if (validateLogin(username, password) && username.equals("admin")) {
+            // Routing berdasarkan role yang didapat dari database
+            if (userRole != null && userRole.equalsIgnoreCase("admin")) {
                 this.dispose();
                 SwingUtilities.invokeLater(() -> {
                     new dashboard_admin(username).setVisible(true);
                 });
-            } else {
+            } else if (userRole != null && userRole.equalsIgnoreCase("guest")) {
                 this.dispose();
                 SwingUtilities.invokeLater(() -> {
                     new dashboard_guest(username).setVisible(true);
                 });
-                
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Role tidak dikenali!",
+                    "Login Gagal",
+                    JOptionPane.ERROR_MESSAGE);
             }
         } else {
             JOptionPane.showMessageDialog(this,
@@ -257,13 +263,17 @@ public class LoginFrame extends JFrame {
     }
 
     private boolean validateLogin(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
+        String sql = "SELECT role FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
+                if (rs.next()) {
+                    userRole = rs.getString("role"); // Ambil role dari database
+                    return true;
+                }
+                return false;
             }
         } catch (SQLException e) {
             System.err.println("Error validating login: " + e.getMessage());
