@@ -176,7 +176,7 @@ public class LoginFrame extends JFrame {
         rolePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
         
         // ComboBox dengan opsi role
-        String[] roles = {"Admin", "Guest","operator"};
+        String[] roles = {"Admin", "Guest","Operator"};
         cmbRole = new JComboBox<>(roles);
         cmbRole.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cmbRole.setBackground(Color.WHITE);
@@ -293,6 +293,12 @@ public class LoginFrame extends JFrame {
                     this.dispose();
                     SwingUtilities.invokeLater(() -> {
                         new dashboard_guest(fullName).setVisible(true);
+                    });
+                }
+                else if (userRole.equalsIgnoreCase("operator")) {
+                    this.dispose();
+                    SwingUtilities.invokeLater(() -> {
+                        new dashboard_operator(fullName).setVisible(true);
                     });
                 }
             } else {

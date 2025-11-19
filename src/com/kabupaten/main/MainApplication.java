@@ -50,7 +50,7 @@ public class MainApplication {
         
         // Jalankan aplikasi di Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
-            new LoadingScreen().setVisible(true);
+            new LoginFrame().setVisible(true);
         });
     }
     

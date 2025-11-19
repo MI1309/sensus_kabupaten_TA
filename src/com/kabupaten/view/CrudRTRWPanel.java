@@ -51,13 +51,11 @@ public class CrudRTRWPanel extends JPanel {
         JButton btnEdit = new JButton("Edit");
         JButton btnHapus = new JButton("Hapus");
         JButton btnDetail = new JButton("Detail");
-        JButton btnCekDuplikat = new JButton("Cek Duplikat");
 
         buttonPanel.add(btnTambah);
         buttonPanel.add(btnEdit);
         buttonPanel.add(btnHapus);
         buttonPanel.add(btnDetail);
-        buttonPanel.add(btnCekDuplikat);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Event handlers
@@ -67,10 +65,6 @@ public class CrudRTRWPanel extends JPanel {
         btnDetail.addActionListener(e -> showDetail());
         btnSearch.addActionListener(e -> searchData());
         btnRefresh.addActionListener(e -> refreshTable());
-        btnCekDuplikat.addActionListener(e -> {
-            debugPrintAllData();
-            checkExistingDuplicates();
-        });
         
         // Enter key untuk search
         txtSearch.addActionListener(e -> searchData());

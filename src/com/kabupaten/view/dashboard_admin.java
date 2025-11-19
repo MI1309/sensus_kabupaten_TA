@@ -215,10 +215,10 @@ public class dashboard_admin extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
                 if (isSelected) {
-                    g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    g2.setFont(new Font("Segoe UI Emoji", Font.BOLD, 14));
                     g2.setColor(Color.WHITE);
                 } else {
-                    g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                    g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
                     g2.setColor(new Color(73, 80, 87));
                 }
 
