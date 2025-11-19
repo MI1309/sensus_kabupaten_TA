@@ -8,14 +8,16 @@ import java.awt.event.*;
 import java.sql.*;
 
 /**
- * Frame untuk login aplikasi
+ * Frame untuk login aplikasi dengan validasi role
  */
 public class LoginFrame extends JFrame {
     private JTextField txtUsername;
     private JPasswordField txtPassword;
+    private JComboBox<String> cmbRole; // TAMBAHAN: ComboBox untuk memilih role
     private JButton btnLogin;
     private JButton btnExit;
-    private String userRole; // Menyimpan role user yang login
+    private String userRole; // Menyimpan role user dari database
+    private String fullName; // Menyimpan nama lengkap user
 
     public LoginFrame() {
         initComponents();
@@ -158,8 +160,52 @@ public class LoginFrame extends JFrame {
         passwordPanel.add(txtPassword, BorderLayout.CENTER);
 
         gbc.gridy = 4;
-        gbc.insets = new Insets(0, 0, 20, 0);
+        gbc.insets = new Insets(0, 0, 15, 0);
         panel.add(passwordPanel, gbc);
+
+        // TAMBAHAN: Role ComboBox
+        JLabel lblRole = new JLabel("Login Sebagai");
+        lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblRole.setForeground(new Color(39, 82, 139));
+        gbc.gridy = 5;
+        gbc.insets = new Insets(0, 0, 5, 0);
+        panel.add(lblRole, gbc);
+
+        JPanel rolePanel = new JPanel(new BorderLayout());
+        rolePanel.setBackground(Color.WHITE);
+        rolePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
+        
+        // ComboBox dengan opsi role
+        String[] roles = {"Admin", "Guest","operator"};
+        cmbRole = new JComboBox<>(roles);
+        cmbRole.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cmbRole.setBackground(Color.WHITE);
+        cmbRole.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+        cmbRole.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Styling ComboBox
+        cmbRole.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, 
+                                                         int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (isSelected) {
+                    setBackground(new Color(74, 144, 226));
+                    setForeground(Color.WHITE);
+                } else {
+                    setBackground(Color.WHITE);
+                    setForeground(Color.BLACK);
+                }
+                setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                return c;
+            }
+        });
+        
+        rolePanel.add(cmbRole, BorderLayout.CENTER);
+
+        gbc.gridy = 6;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        panel.add(rolePanel, gbc);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
@@ -174,11 +220,10 @@ public class LoginFrame extends JFrame {
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 15));
         btnExit.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
-
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnExit);
 
-        gbc.gridy = 5;
+        gbc.gridy = 7;
         gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(buttonPanel, gbc);
 
@@ -220,10 +265,11 @@ public class LoginFrame extends JFrame {
         txtPassword.addActionListener(e -> performLogin());
     }
 
-    // route page berdasarkan role
+    // Route page berdasarkan role dengan validasi ganda
     private void performLogin() {
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword());
+        String selectedRole = ((String) cmbRole.getSelectedItem()).toLowerCase(); // TAMBAHAN: Ambil role dari combobox
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -233,23 +279,32 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        if (validateLogin(username, password)) {
-            // Routing berdasarkan role yang didapat dari database
-            if (userRole != null && userRole.equalsIgnoreCase("admin")) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> {
-                    new dashboard_admin(username).setVisible(true);
-                });
-            } else if (userRole != null && userRole.equalsIgnoreCase("guest")) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> {
-                    new dashboard_guest(username).setVisible(true);
-                });
+        // PERBAIKAN: Validasi login dengan role yang dipilih
+        if (validateLogin(username, password, selectedRole)) {
+            // Cek apakah role dari database sesuai dengan role yang dipilih
+            if (userRole != null && userRole.equalsIgnoreCase(selectedRole)) {
+                // Role cocok, lanjutkan login
+                if (userRole.equalsIgnoreCase("admin")) {
+                    this.dispose();
+                    SwingUtilities.invokeLater(() -> {
+                        new dashboard_admin(fullName).setVisible(true);
+                    });
+                } else if (userRole.equalsIgnoreCase("guest")) {
+                    this.dispose();
+                    SwingUtilities.invokeLater(() -> {
+                        new dashboard_guest(fullName).setVisible(true);
+                    });
+                }
             } else {
+                // Role tidak cocok
                 JOptionPane.showMessageDialog(this,
-                    "Role tidak dikenali!",
-                    "Login Gagal",
+                    "Role yang dipilih tidak sesuai!\n" +
+                    "Anda memilih: " + selectedRole.toUpperCase() + "\n" +
+                    "Role sebenarnya: " + (userRole != null ? userRole.toUpperCase() : "Tidak diketahui"),
+                    "Login Gagal - Role Tidak Cocok",
                     JOptionPane.ERROR_MESSAGE);
+                txtPassword.setText("");
+                txtPassword.requestFocus();
             }
         } else {
             JOptionPane.showMessageDialog(this,
@@ -262,21 +317,46 @@ public class LoginFrame extends JFrame {
         }
     }
 
-    private boolean validateLogin(String username, String password) {
-        String sql = "SELECT role FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
+    // PERBAIKAN: Validasi login dengan parameter role
+    private boolean validateLogin(String username, String password, String selectedRole) {
+        // Query untuk validasi username, password, dan role
+        String sql = "SELECT role, nama_lengkap FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             stmt.setString(1, username);
             stmt.setString(2, password);
+            
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    userRole = rs.getString("role"); // Ambil role dari database
-                    return true;
+                    // Ambil role dan fullName dari database
+                    userRole = rs.getString("role");
+                    fullName = rs.getString("nama_lengkap");
+                    
+                    // Jika nama_lengkap null atau kosong, gunakan username sebagai fallback
+                    if (fullName == null || fullName.trim().isEmpty()) {
+                        fullName = username;
+                    }
+                    
+                    // VALIDASI GANDA: Cek apakah role dari database sama dengan role yang dipilih
+                    boolean roleMatch = userRole != null && userRole.equalsIgnoreCase(selectedRole);
+                    
+                    System.out.println("=== LOGIN VALIDATION ===");
+                    System.out.println("Username: " + username);
+                    System.out.println("Full Name: " + fullName);
+                    System.out.println("Role dari Database: " + userRole);
+                    System.out.println("Role yang Dipilih: " + selectedRole);
+                    System.out.println("Role Match: " + roleMatch);
+                    System.out.println("========================");
+                    
+                    return true; // Username dan password benar, validasi role dilakukan di performLogin()
                 }
-                return false;
+                return false; // Username atau password salah
             }
         } catch (SQLException e) {
             System.err.println("Error validating login: " + e.getMessage());
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this,
                 "Error koneksi database: " + e.getMessage(),
                 "Error",
@@ -284,7 +364,6 @@ public class LoginFrame extends JFrame {
             return false;
         }
     }
-
 
     private void exit() {
         int confirm = JOptionPane.showConfirmDialog(this, 
@@ -295,7 +374,7 @@ public class LoginFrame extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             this.dispose();
             SwingUtilities.invokeLater(() -> {
-                System.exit(1);
+                System.exit(0);
             });
         }
     }
