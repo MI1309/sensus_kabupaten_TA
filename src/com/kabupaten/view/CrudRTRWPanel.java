@@ -97,6 +97,7 @@ public class CrudRTRWPanel extends JPanel {
                         rtrw.getAlamat() != null ? rtrw.getAlamat() : "-"
                     });
                     addedIds.add(rtrw.getIdRtrw());
+                    txtSearch.setText("");
                 }
             }
         } catch (Exception e) {
@@ -306,9 +307,11 @@ public class CrudRTRWPanel extends JPanel {
             
             // Cek duplikat Desa-RT-RW
             for (RTRW rtrw : allData) {
-                String key = (rtrw.getNamaDesa() != null ? rtrw.getNamaDesa().toLowerCase() : "") + "|" +
-                            (rtrw.getRt() != null ? rtrw.getRt() : "") + "|" +
-                            (rtrw.getRw() != null ? rtrw.getRw() : "");
+                String desa = rtrw.getNamaDesa() != null ? rtrw.getNamaDesa().toLowerCase().trim() : "";
+                String rt   = rtrw.getRt() != null ? rtrw.getRt().toLowerCase().trim() : "";
+                String rw   = rtrw.getRw() != null ? rtrw.getRw().toLowerCase().trim() : "";
+            //
+                String key = desa + "|" + rt + "|" + rw;
                 
                 if (uniqueKeys.contains(key)) {
                     duplicatesRTRW.add("ID " + rtrw.getIdRtrw() + ": " + 
@@ -454,20 +457,32 @@ public class CrudRTRWPanel extends JPanel {
                         JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                
-                // OPSIONAL: Cek duplikat nama ketua (uncomment jika ingin aktifkan)
-                // if (!namaKetua.isEmpty() && isDuplicateNamaKetua(namaKetua, null)) {
-                //     int response = JOptionPane.showConfirmDialog(this,
-                //         "Nama ketua '" + namaKetua + "' sudah digunakan di RT/RW lain!\n" +
-                //         "Apakah Anda yakin ingin tetap menggunakan nama ini?",
-                //         "Peringatan Nama Ketua Duplikat",
-                //         JOptionPane.YES_NO_OPTION,
-                //         JOptionPane.WARNING_MESSAGE);
-                //     
-                //     if (response != JOptionPane.YES_OPTION) {
-                //         return;
-                //     }
-                // }
+                // Cek duplikat nama ketua (opsional)
+                if (!namaKetua.isEmpty() && isDuplicateNamaKetua(namaKetua, null)) {
+                    int response = JOptionPane.showConfirmDialog(this,
+                        "Nama ketua '" + namaKetua + "' sudah digunakan di RT/RW lain!\n" +
+                        "Apakah Anda yakin ingin tetap menggunakan nama ini?",
+                        "Peringatan Nama Ketua Duplikat",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                    
+                    if (response != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
+                // cek nama desa duplikat
+                if (!namaDesa.isEmpty() && isDuplicateNamaKetua(namaDesa, null)) {
+                    int response = JOptionPane.showConfirmDialog(this,
+                        "Nama ketua '" + namaDesa + "' sudah digunakan di RT/RW lain!\n" +
+                        "Apakah Anda yakin ingin tetap menggunakan nama ini?",
+                        "Peringatan Nama Ketua Duplikat",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                    
+                    if (response != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
 
                 // Format RT dan RW dengan padding 0
                 String rtFormatted = String.format("%03d", rt);

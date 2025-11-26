@@ -246,6 +246,7 @@ public class dashboard_admin extends JFrame {
         tabbedPane.addTab("Warga", new CrudWargaPanel());
         tabbedPane.addTab("Kecamatan", new CrudKecamatanPanel());
         tabbedPane.addTab("Desa", new CrudDesaPanel());
+        tabbedPane.addTab("User",new CrudUserPanel());
 
         return tabbedPane;
     }
@@ -258,6 +259,7 @@ public class dashboard_admin extends JFrame {
             case 2: return "👥";  // Warga
             case 3: return "🏙️";  // Kecamatan
             case 4: return "🏡";  // Desa
+            case 5: return "🏡";  // Desa
             default: return "📋";
         }
     }

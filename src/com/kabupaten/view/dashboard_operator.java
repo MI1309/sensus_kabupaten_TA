@@ -21,7 +21,7 @@ public class dashboard_operator extends JFrame {
 
     private void initComponents() {
         // PERBAIKAN: Tampilkan fullName di title
-        setTitle("Dashboard Admin - " + currentFullName);
+        setTitle("Dashboard Operator - " + currentFullName);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Color bgColor = new Color(245, 245, 245);

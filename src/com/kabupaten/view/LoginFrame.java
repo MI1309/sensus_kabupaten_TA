@@ -326,7 +326,7 @@ public class LoginFrame extends JFrame {
     // PERBAIKAN: Validasi login dengan parameter role
     private boolean validateLogin(String username, String password, String selectedRole) {
         // Query untuk validasi username, password, dan role
-        String sql = "SELECT role, nama_lengkap FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
+        String sql = "SELECT role, nama_lengkap FROM users WHERE username = ? AND password = ? AND status = 'aktif'";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
