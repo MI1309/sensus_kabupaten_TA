@@ -1,24 +1,17 @@
 package com.kabupaten.view;
-
-import com.kabupaten.model.RTRWMODEL;
-import com.kabupaten.services.RTRWSERVICES;
+import com.kabupaten.model.Kecamatan;
+import com.kabupaten.dao.KecamatanDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 
 /**
- * Panel CRUD untuk data Warga
- * 
- * PERBAIKAN:
- * 1. Mengganti r.getKecamatan() menjadi r.getDesa() (sesuai model)
- * 2. Memperbaiki parameter addRTRW() menjadi 7 parameter
- * 3. Menambahkan validasi input
- * 4. Menambahkan error handling yang proper
- * 5. Menambahkan fitur search
+ * Panel CRUD untuk data Kecamatan
  */
 public class CrudWargaPanel extends JPanel {
-    private RTRWSERVICES service = new RTRWSERVICES();
+    private KecamatanDAO dao = new KecamatanDAO();
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
@@ -30,17 +23,15 @@ public class CrudWargaPanel extends JPanel {
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchPanel.add(new JLabel("Pencarian:"));
         txtSearch = new JTextField(20);
-        JButton btnSearch = new JButton("Cari");
-        JButton btnRefresh = new JButton("Refresh");
+        // JButton btnRefresh = new JButton("Refresh");
         
         searchPanel.add(txtSearch);
-        searchPanel.add(btnSearch);
-        searchPanel.add(btnRefresh);
+        // searchPanel.add(btnRefresh);
         add(searchPanel, BorderLayout.NORTH);
 
         // Tabel
         tableModel = new DefaultTableModel(
-            new Object[]{"ID", "Desa", "RW", "RT", "Alamat", "Status"}, 0
+            new Object[]{"ID Kecamatan", "Nama Kecamatan", "Alamat Kantor Kecamatan", "Nama Kepala Kecamatan", "Alamat Rumah Kepala Kecamatan", "No HP"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -59,6 +50,15 @@ public class CrudWargaPanel extends JPanel {
         JButton btnHapus = new JButton("Hapus");
         JButton btnDetail = new JButton("Detail");
 
+        btnTambah.setBackground(new Color(46, 125, 50));
+        btnTambah.setForeground(Color.WHITE);
+        btnEdit.setBackground(new Color(33, 150, 243));
+        btnEdit.setForeground(Color.WHITE);
+        btnHapus.setBackground(new Color(244, 67, 54));
+        btnHapus.setForeground(Color.WHITE);
+        btnDetail.setBackground(new Color(158, 158, 158));
+        btnDetail.setForeground(Color.WHITE);
+
         buttonPanel.add(btnTambah);
         buttonPanel.add(btnEdit);
         buttonPanel.add(btnHapus);
@@ -70,11 +70,25 @@ public class CrudWargaPanel extends JPanel {
         btnEdit.addActionListener(e -> editData());
         btnHapus.addActionListener(e -> hapusData());
         btnDetail.addActionListener(e -> showDetail());
-        btnSearch.addActionListener(e -> searchData());
-        btnRefresh.addActionListener(e -> refreshTable());
+        // btnRefresh.addActionListener(e -> refreshTable());
         
-        // Enter key untuk search
-        txtSearch.addActionListener(e -> searchData());
+        // Live search menggunakan DocumentListener
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                searchData();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                searchData();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                searchData();
+            }
+        });
 
         // Load initial data
         refreshTable();
@@ -83,15 +97,15 @@ public class CrudWargaPanel extends JPanel {
     private void refreshTable() {
         tableModel.setRowCount(0);
         try {
-            for (RTRWMODEL r : service.getAllRTRWModel()) {
-                // PERBAIKAN: Ganti getKecamatan() dengan getDesa()
+            List<Kecamatan> kecamatanList = dao.getAllKecamatan();
+            for (Kecamatan k : kecamatanList) {
                 tableModel.addRow(new Object[]{
-                    r.getId(), 
-                    r.getDesa() != null ? r.getDesa() : "-",  // FIX: getDesa() bukan getKecamatan()
-                    r.getRw() != null ? r.getRw() : "-", 
-                    r.getRt() != null ? r.getRt() : "-", 
-                    r.getAlamat() != null ? r.getAlamat() : "-", 
-                    r.getStatus() != null ? r.getStatus() : "Aktif"
+                    k.getIdKecamatan(), 
+                    k.getNamaKecamatan() != null ? k.getNamaKecamatan() : "-",
+                    k.getAlamatKantor() != null ? k.getAlamatKantor() : "-",
+                    k.getNamaKepala() != null ? k.getNamaKepala() : "-",
+                    k.getAlamatRumahKepala() != null ? k.getAlamatRumahKepala() : "-",
+                    k.getNoHp() != null ? k.getNoHp() : "-"
                 });
             }
         } catch (Exception e) {
@@ -112,24 +126,16 @@ public class CrudWargaPanel extends JPanel {
         
         tableModel.setRowCount(0);
         try {
-            for (RTRWMODEL r : service.getAllRTRWModel()) {
-                String desa = r.getDesa() != null ? r.getDesa().toLowerCase() : "";
-                String alamat = r.getAlamat() != null ? r.getAlamat().toLowerCase() : "";
-                String namaKetua = r.getNamaKetua() != null ? r.getNamaKetua().toLowerCase() : "";
-                String keywordLower = keyword.toLowerCase();
-                
-                if (desa.contains(keywordLower) || 
-                    alamat.contains(keywordLower) || 
-                    namaKetua.contains(keywordLower)) {
-                    tableModel.addRow(new Object[]{
-                        r.getId(), 
-                        r.getDesa(), 
-                        r.getRw(), 
-                        r.getRt(), 
-                        r.getAlamat(), 
-                        r.getStatus()
-                    });
-                }
+            List<Kecamatan> kecamatanList = dao.searchKecamatan(keyword);
+            for (Kecamatan k : kecamatanList) {
+                tableModel.addRow(new Object[]{
+                    k.getIdKecamatan(), 
+                    k.getNamaKecamatan() != null ? k.getNamaKecamatan() : "-",
+                    k.getAlamatKantor() != null ? k.getAlamatKantor() : "-",
+                    k.getNamaKepala() != null ? k.getNamaKepala() : "-",
+                    k.getAlamatRumahKepala() != null ? k.getAlamatRumahKepala() : "-",
+                    k.getNoHp() != null ? k.getNoHp() : "-"
+                });
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
@@ -140,88 +146,31 @@ public class CrudWargaPanel extends JPanel {
     }
 
     private void tambahData() {
-        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-
-        JTextField txtDesa = new JTextField();
-        JTextField txtRW = new JTextField();
-        JTextField txtRT = new JTextField();
-        JTextField txtNamaKetua = new JTextField();
-        JTextField txtKontak = new JTextField();
-        JTextArea txtAlamat = new JTextArea(3, 20);
-        txtAlamat.setLineWrap(true);
-        txtAlamat.setWrapStyleWord(true);
-        JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
-
-        panel.add(new JLabel("Desa:*"));
-        panel.add(txtDesa);
-        panel.add(new JLabel("RW:*"));
-        panel.add(txtRW);
-        panel.add(new JLabel("RT:*"));
-        panel.add(txtRT);
-        panel.add(new JLabel("Nama Ketua:"));
-        panel.add(txtNamaKetua);
-        panel.add(new JLabel("Kontak:"));
-        panel.add(txtKontak);
-        panel.add(new JLabel("Alamat:*"));
-        panel.add(scrollAlamat);
-
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            panel,
-            "Tambah Data Warga",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE
+        KecamatanFormDialog dialog = new KecamatanFormDialog(
+            (Frame) SwingUtilities.getWindowAncestor(this),
+            "Tambah Data Kecamatan",
+            true
         );
+        dialog.setVisible(true);
 
-        if (result == JOptionPane.OK_OPTION) {
+        if (dialog.isConfirmed()) {
+            Kecamatan kecamatan = dialog.getKecamatan();
             try {
-                String desa = txtDesa.getText().trim();
-                String rwStr = txtRW.getText().trim();
-                String rtStr = txtRT.getText().trim();
-                String namaKetua = txtNamaKetua.getText().trim();
-                String kontak = txtKontak.getText().trim();
-                String alamat = txtAlamat.getText().trim();
-
-                // Validasi input wajib
-                if (desa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Desa, RW, RT, dan Alamat wajib diisi!", 
-                        "Peringatan", 
-                        JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                // Validasi format angka
-                if (!rwStr.matches("\\d+") || !rtStr.matches("\\d+")) {
-                    JOptionPane.showMessageDialog(this, 
-                        "RW dan RT harus berupa angka!", 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                int rw = Integer.parseInt(rwStr);
-                int rt = Integer.parseInt(rtStr);
-
-                // PERBAIKAN: Tambahkan parameter namaKetua dan kontak (total 7 parameter)
-                boolean success = service.addRTRW(desa, rw, rt, namaKetua, kontak, alamat, "Aktif");
+                boolean success = dao.addKecamatan(kecamatan);
                 
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
+                    JOptionPane.showMessageDialog(this, 
+                        "Data berhasil ditambahkan!", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                     txtSearch.setText("");
                 } else {
                     JOptionPane.showMessageDialog(this, 
-                        "Gagal menambahkan data!", 
+                        "Gagal menambahkan data! Nama kecamatan mungkin sudah ada.", 
                         "Error", 
                         JOptionPane.ERROR_MESSAGE);
                 }
-                
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "RW dan RT harus berupa angka yang valid!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
                     "Error: " + e.getMessage(), 
@@ -244,104 +193,48 @@ public class CrudWargaPanel extends JPanel {
         
         int id = (int) table.getValueAt(row, 0);
         
-        // Ambil data dari service
-        RTRWMODEL rtrw = service.getAllRTRWModel().stream()
-            .filter(r -> r.getId() == id)
-            .findFirst()
-            .orElse(null);
-        
-        if (rtrw == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Data tidak ditemukan!", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        try {
+            Kecamatan kecamatan = dao.getKecamatanById(id);
+            
+            if (kecamatan == null) {
+                JOptionPane.showMessageDialog(this, 
+                    "Data tidak ditemukan!", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+            KecamatanFormDialog dialog = new KecamatanFormDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                "Edit Data Kecamatan",
+                true,
+                kecamatan
+            );
+            dialog.setVisible(true);
 
-        JTextField txtDesa = new JTextField(rtrw.getDesa() != null ? rtrw.getDesa() : "");
-        JTextField txtRW = new JTextField(rtrw.getRw() != null ? rtrw.getRw() : "");
-        JTextField txtRT = new JTextField(rtrw.getRt() != null ? rtrw.getRt() : "");
-        JTextField txtNamaKetua = new JTextField(rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "");
-        JTextField txtKontak = new JTextField(rtrw.getKontak() != null ? rtrw.getKontak() : "");
-        JTextArea txtAlamat = new JTextArea(rtrw.getAlamat() != null ? rtrw.getAlamat() : "", 3, 20);
-        txtAlamat.setLineWrap(true);
-        txtAlamat.setWrapStyleWord(true);
-        JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
-
-        panel.add(new JLabel("Desa:*"));
-        panel.add(txtDesa);
-        panel.add(new JLabel("RW:*"));
-        panel.add(txtRW);
-        panel.add(new JLabel("RT:*"));
-        panel.add(txtRT);
-        panel.add(new JLabel("Nama Ketua:"));
-        panel.add(txtNamaKetua);
-        panel.add(new JLabel("Kontak:"));
-        panel.add(txtKontak);
-        panel.add(new JLabel("Alamat:*"));
-        panel.add(scrollAlamat);
-
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            panel,
-            "Edit Data Warga",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE
-        );
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                String desa = txtDesa.getText().trim();
-                String rwStr = txtRW.getText().trim();
-                String rtStr = txtRT.getText().trim();
-                String alamat = txtAlamat.getText().trim();
-
-                // Validasi
-                if (desa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Desa, RW, RT, dan Alamat wajib diisi!", 
-                        "Peringatan", 
-                        JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                if (!rwStr.matches("\\d+") || !rtStr.matches("\\d+")) {
-                    JOptionPane.showMessageDialog(this, 
-                        "RW dan RT harus berupa angka!", 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                int rw = Integer.parseInt(rwStr);
-                int rt = Integer.parseInt(rtStr);
-
-                boolean success = service.updateRTRW(id, desa, rw, rt, alamat, "Aktif");
+            if (dialog.isConfirmed()) {
+                Kecamatan updatedKecamatan = dialog.getKecamatan();
+                boolean success = dao.updateKecamatan(updatedKecamatan);
                 
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Data berhasil diupdate!");
+                    JOptionPane.showMessageDialog(this, 
+                        "Data berhasil diupdate!", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                 } else {
                     JOptionPane.showMessageDialog(this, 
-                        "Gagal mengupdate data!", 
+                        "Gagal mengupdate data! Nama kecamatan mungkin sudah ada.", 
                         "Error", 
                         JOptionPane.ERROR_MESSAGE);
                 }
-                
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "RW dan RT harus berupa angka yang valid!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error: " + e.getMessage(), 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
@@ -355,9 +248,11 @@ public class CrudWargaPanel extends JPanel {
             return;
         }
         
+        String namaKecamatan = table.getValueAt(row, 1).toString();
+        
         int result = JOptionPane.showConfirmDialog(
             this,
-            "Apakah Anda yakin ingin menghapus data ini?",
+            "Apakah Anda yakin ingin menghapus data kecamatan:\n" + namaKecamatan + "?",
             "Konfirmasi Hapus",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
@@ -366,9 +261,12 @@ public class CrudWargaPanel extends JPanel {
         if (result == JOptionPane.YES_OPTION) {
             int id = (int) table.getValueAt(row, 0);
             try {
-                boolean success = service.deleteRTRW(id);
+                boolean success = dao.deleteKecamatan(id);
                 if (success) {
-                    JOptionPane.showMessageDialog(this, "Data berhasil dihapus!");
+                    JOptionPane.showMessageDialog(this, 
+                        "Data berhasil dihapus!", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                 } else {
                     JOptionPane.showMessageDialog(this, 
@@ -398,52 +296,53 @@ public class CrudWargaPanel extends JPanel {
 
         int id = (int) table.getValueAt(row, 0);
         
-        RTRWMODEL rtrw = service.getAllRTRWModel().stream()
-            .filter(r -> r.getId() == id)
-            .findFirst()
-            .orElse(null);
-        
-        if (rtrw != null) {
-            String detail = String.format(
-                "=== DETAIL DATA WARGA ===\n\n" +
-                "ID: %d\n" +
-                "Desa: %s\n" +
-                "RT: %s\n" +
-                "RW: %s\n" +
-                "Nama Ketua: %s\n" +
-                "Kontak: %s\n" +
-                "Alamat: %s\n" +
-                "Status: %s\n" +
-                "Dibuat: %s\n" +
-                "Diupdate: %s",
-                rtrw.getId(),
-                rtrw.getDesa() != null ? rtrw.getDesa() : "-",
-                rtrw.getRt() != null ? rtrw.getRt() : "-",
-                rtrw.getRw() != null ? rtrw.getRw() : "-",
-                rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "-",
-                rtrw.getKontak() != null ? rtrw.getKontak() : "-",
-                rtrw.getAlamat() != null ? rtrw.getAlamat() : "-",
-                rtrw.getStatus() != null ? rtrw.getStatus() : "Aktif",
-                rtrw.getCreatedAt() != null ? rtrw.getCreatedAt() : "-",
-                rtrw.getUpdatedAt() != null ? rtrw.getUpdatedAt() : "-"
-            );
+        try {
+            Kecamatan kecamatan = dao.getKecamatanById(id);
             
-            JTextArea textArea = new JTextArea(detail);
-            textArea.setEditable(false);
-            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-            
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(400, 300));
-            
+            if (kecamatan != null) {
+                String detail = String.format(
+                    "=== DETAIL DATA KECAMATAN ===\n\n" +
+                    "ID Kecamatan: %d\n" +
+                    "Nama Kecamatan: %s\n" +
+                    "Alamat Kantor: %s\n" +
+                    "Nama Kepala: %s\n" +
+                    "Alamat Rumah Kepala: %s\n" +
+                    "No HP: %s\n\n" +
+                    "Dibuat: %s\n" +
+                    "Diupdate: %s",
+                    kecamatan.getIdKecamatan(),
+                    kecamatan.getNamaKecamatan() != null ? kecamatan.getNamaKecamatan() : "-",
+                    kecamatan.getAlamatKantor() != null ? kecamatan.getAlamatKantor() : "-",
+                    kecamatan.getNamaKepala() != null ? kecamatan.getNamaKepala() : "-",
+                    kecamatan.getAlamatRumahKepala() != null ? kecamatan.getAlamatRumahKepala() : "-",
+                    kecamatan.getNoHp() != null ? kecamatan.getNoHp() : "-",
+                    kecamatan.getCreatedAt() != null ? kecamatan.getCreatedAt() : "-",
+                    kecamatan.getUpdatedAt() != null ? kecamatan.getUpdatedAt() : "-"
+                );
+                
+                JTextArea textArea = new JTextArea(detail);
+                textArea.setEditable(false);
+                textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+                
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(450, 300));
+                
+                JOptionPane.showMessageDialog(this, 
+                    scrollPane, 
+                    "Detail Data Kecamatan", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Data tidak ditemukan!", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
-                scrollPane, 
-                "Detail Data Warga", 
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this, 
-                "Data tidak ditemukan!", 
+                "Error: " + e.getMessage(), 
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 }

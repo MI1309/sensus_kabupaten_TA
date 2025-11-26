@@ -241,12 +241,11 @@ public class dashboard_admin extends JFrame {
         });
 
         // Add tabs with icons
-        tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
-        tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
-        tabbedPane.addTab("Warga", new CrudWargaPanel());
         tabbedPane.addTab("Kecamatan", new CrudKecamatanPanel());
         tabbedPane.addTab("Desa", new CrudDesaPanel());
-        tabbedPane.addTab("User",new CrudUserPanel());
+        // tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
+        // tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
+        tabbedPane.addTab("Warga", new CrudWargaPanel());
 
         return tabbedPane;
     }
@@ -254,12 +253,11 @@ public class dashboard_admin extends JFrame {
     // Helper method for tab icons
     private String getTabIcon(int index) {
         switch (index) {
-            case 0: return "🏘️";  // RT/RW
-            case 1: return "👤";  // Ketua
+            case 0: return "🏙️";  // Kecamatan
+            case 1: return "🏡";  // Desa
+            // case 2: return "🏘️";  // RT/RW
+            // case 2: return "👤";  // Ketua
             case 2: return "👥";  // Warga
-            case 3: return "🏙️";  // Kecamatan
-            case 4: return "🏡";  // Desa
-            case 5: return "🏡";  // Desa
             default: return "📋";
         }
     }

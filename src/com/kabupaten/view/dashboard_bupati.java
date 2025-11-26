@@ -5,14 +5,14 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
-public class dashboard_operator extends JFrame {
+public class dashboard_bupati extends JFrame {
     private String currentFullName;  // Full Name untuk ditampilkan
     private JButton btnLogout;
     private JLabel lblUser;
     private JLabel lblWelcome;
 
     // PERBAIKAN: Constructor menerima 2 parameter (fullName dan username)
-    public dashboard_operator(String fullName) {
+    public dashboard_bupati(String fullName) {
         this.currentFullName = fullName;
 
         initComponents();
@@ -21,7 +21,7 @@ public class dashboard_operator extends JFrame {
 
     private void initComponents() {
         // PERBAIKAN: Tampilkan fullName di title
-        setTitle("Dashboard Operator - " + currentFullName);
+        setTitle("Dashboard Admin - " + currentFullName);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Color bgColor = new Color(245, 245, 245);
@@ -241,11 +241,11 @@ public class dashboard_operator extends JFrame {
         });
 
         // Add tabs with icons
-        tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
-        tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
-        tabbedPane.addTab("Warga", new CrudWargaPanel());
         tabbedPane.addTab("Kecamatan", new CrudKecamatanPanel());
         tabbedPane.addTab("Desa", new CrudDesaPanel());
+        // tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
+        // tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
+        tabbedPane.addTab("Warga", new CrudWargaPanel());
 
         return tabbedPane;
     }
@@ -253,11 +253,11 @@ public class dashboard_operator extends JFrame {
     // Helper method for tab icons
     private String getTabIcon(int index) {
         switch (index) {
-            case 0: return "🏘️";  // RT/RW
-            case 1: return "👤";  // Ketua
+            case 0: return "🏙️";  // Kecamatan
+            case 1: return "🏡";  // Desa
+            // case 2: return "🏘️";  // RT/RW
+            // case 2: return "👤";  // Ketua
             case 2: return "👥";  // Warga
-            case 3: return "🏙️";  // Kecamatan
-            case 4: return "🏡";  // Desa
             default: return "📋";
         }
     }
