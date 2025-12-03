@@ -1,12 +1,14 @@
 package com.kabupaten.view;
-
 import com.kabupaten.model.Desa;
+import com.kabupaten.model.Kecamatan;
 import com.kabupaten.dao.DesaDAO;
 import com.kabupaten.dao.KecamatanDAO;
+import com.kabupaten.listener.DataChangeListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Panel CRUD untuk data Desa dengan Filter Kecamatan
@@ -19,6 +21,9 @@ public class CrudDesaPanel extends JPanel {
     private JTextField txtSearch;
     private JComboBox<String> cmbKecamatanFilter;
     private JComboBox<String> cmbJenisFilter;
+    
+    // Listener untuk notifikasi perubahan data
+    private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
     public CrudDesaPanel() {
         setLayout(new BorderLayout());
@@ -57,7 +62,7 @@ public class CrudDesaPanel extends JPanel {
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Semua cell tidak bisa diedit langsung
+                return false;
             }
         };
         
@@ -66,13 +71,13 @@ public class CrudDesaPanel extends JPanel {
         table.setRowHeight(25);
         
         // Set lebar kolom
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);  // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(120); // Kecamatan
-        table.getColumnModel().getColumn(2).setPreferredWidth(120); // Nama Desa
-        table.getColumnModel().getColumn(3).setPreferredWidth(100); // Jenis
-        table.getColumnModel().getColumn(4).setPreferredWidth(150); // Alamat Kantor
-        table.getColumnModel().getColumn(5).setPreferredWidth(120); // Nama Kepala
-        table.getColumnModel().getColumn(6).setPreferredWidth(100); // No HP
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.getColumnModel().getColumn(3).setPreferredWidth(100);
+        table.getColumnModel().getColumn(4).setPreferredWidth(150);
+        table.getColumnModel().getColumn(5).setPreferredWidth(120);
+        table.getColumnModel().getColumn(6).setPreferredWidth(100);
         
         add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -129,7 +134,66 @@ public class CrudDesaPanel extends JPanel {
         refreshTable();
     }
     
-    // Load daftar kecamatan ke ComboBox filter
+    // ========== LISTENER MANAGEMENT ==========
+    /**
+     * Menambahkan listener untuk perubahan data
+     */
+    public void addDataChangeListener(DataChangeListener listener) {
+        dataChangeListeners.add(listener);
+    }
+    
+    /**
+     * Memberitahu semua listener bahwa data telah berubah
+     */
+    private void notifyDataChanged() {
+        for (DataChangeListener listener : dataChangeListeners) {
+            listener.onDataChanged();
+        }
+    }
+    
+    // ========== PUBLIC METHODS ==========
+    /**
+     * Method public untuk refresh dari luar (dipanggil oleh panel lain)
+     */
+    public void refreshData() {
+        refreshKecamatanComboBox();
+        refreshTable();
+    }
+    
+    /**
+     * Method untuk refresh combo box kecamatan
+     */
+    public void refreshKecamatanComboBox() {
+        String currentSelection = (String) cmbKecamatanFilter.getSelectedItem();
+        
+        // Matikan listener sementara untuk menghindari trigger berulang
+        cmbKecamatanFilter.removeAllItems();
+        cmbKecamatanFilter.addItem("-- Semua Kecamatan --");
+        
+        List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
+        for (String kecamatan : kecamatanList) {
+            cmbKecamatanFilter.addItem(kecamatan);
+        }
+        
+        // Coba pertahankan selection sebelumnya
+        if (currentSelection != null && !currentSelection.equals("-- Semua Kecamatan --")) {
+            boolean found = false;
+            for (String kec : kecamatanList) {
+                if (kec.equals(currentSelection)) {
+                    cmbKecamatanFilter.setSelectedItem(currentSelection);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                cmbKecamatanFilter.setSelectedIndex(0);
+            }
+        } else {
+            cmbKecamatanFilter.setSelectedIndex(0);
+        }
+    }
+    
+    // ========== PRIVATE METHODS ==========
     private void loadKecamatanList() {
         List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
         for (String kecamatan : kecamatanList) {
@@ -152,9 +216,6 @@ public class CrudDesaPanel extends JPanel {
                     desa.getNoHp() != null ? desa.getNoHp() : "-"
                 });
             }
-            
-            // Update status bar
-            updateStatusBar();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
                 "Error memuat data: " + e.getMessage(), 
@@ -168,6 +229,15 @@ public class CrudDesaPanel extends JPanel {
         String keyword = txtSearch.getText().trim().toLowerCase();
         String selectedKecamatan = (String) cmbKecamatanFilter.getSelectedItem();
         String selectedJenis = (String) cmbJenisFilter.getSelectedItem();
+        
+        // Validasi null
+        if (selectedKecamatan == null) {
+            selectedKecamatan = "-- Semua Kecamatan --";
+        }
+        if (selectedJenis == null) {
+            selectedJenis = "-- Semua --";
+        }
+        
         boolean filterAllKecamatan = selectedKecamatan.equals("-- Semua Kecamatan --");
         boolean filterAllJenis = selectedJenis.equals("-- Semua --");
         
@@ -176,14 +246,21 @@ public class CrudDesaPanel extends JPanel {
             List<Desa> desaList = desaDAO.getAllDesa();
             
             for (Desa desa : desaList) {
+                String namaKecamatanDesa = desa.getNamaKecamatan();
+                String jenisDesa = desa.getJenis();
+                
                 // Filter berdasarkan kecamatan
-                if (!filterAllKecamatan && !selectedKecamatan.equals(desa.getNamaKecamatan())) {
-                    continue;
+                if (!filterAllKecamatan) {
+                    if (namaKecamatanDesa == null || !selectedKecamatan.equals(namaKecamatanDesa)) {
+                        continue;
+                    }
                 }
                 
                 // Filter berdasarkan jenis
-                if (!filterAllJenis && !selectedJenis.equals(desa.getJenis())) {
-                    continue;
+                if (!filterAllJenis) {
+                    if (jenisDesa == null || !selectedJenis.equals(jenisDesa)) {
+                        continue;
+                    }
                 }
                 
                 // Filter berdasarkan keyword
@@ -199,9 +276,9 @@ public class CrudDesaPanel extends JPanel {
                 
                 tableModel.addRow(new Object[]{
                     desa.getIdDesa(),
-                    desa.getNamaKecamatan() != null ? desa.getNamaKecamatan() : "-",
+                    namaKecamatanDesa != null ? namaKecamatanDesa : "-",
                     desa.getNamaDesa() != null ? desa.getNamaDesa() : "-",
-                    desa.getJenis() != null ? desa.getJenis() : "-",
+                    jenisDesa != null ? jenisDesa : "-",
                     desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "-",
                     desa.getNamaKepala() != null ? desa.getNamaKepala() : "-",
                     desa.getNoHp() != null ? desa.getNoHp() : "-"
@@ -237,6 +314,9 @@ public class CrudDesaPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                     txtSearch.setText("");
+                    
+                    // PENTING: Notifikasi panel lain untuk refresh
+                    notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal menambahkan data!\nNama desa mungkin sudah ada di kecamatan yang sama.", 
@@ -296,6 +376,9 @@ public class CrudDesaPanel extends JPanel {
                         "Sukses", 
                         JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
+                    
+                    // PENTING: Notifikasi panel lain untuk refresh
+                    notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal mengupdate data!\nNama desa mungkin sudah ada di kecamatan yang sama.", 
@@ -325,18 +408,14 @@ public class CrudDesaPanel extends JPanel {
         
         int idDesa = (int) table.getValueAt(row, 0);
         String namaDesa = table.getValueAt(row, 2).toString();
-        String namaKecamatan = table.getValueAt(row, 1).toString();
         
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            "Apakah Anda yakin ingin menghapus data desa:\n" + 
-            namaDesa + " (" + namaKecamatan + ")?",
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Apakah Anda yakin ingin menghapus desa:\n" + namaDesa + "?",
             "Konfirmasi Hapus",
             JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (result == JOptionPane.YES_OPTION) {
+            JOptionPane.QUESTION_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
             try {
                 boolean success = desaDAO.deleteDesa(idDesa);
                 
@@ -345,13 +424,20 @@ public class CrudDesaPanel extends JPanel {
                         "Data desa berhasil dihapus!", 
                         "Sukses", 
                         JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Refresh data lokal
+                    refreshKecamatanComboBox();
                     refreshTable();
+                    
+                    // PENTING: Notifikasi panel lain untuk refresh
+                    notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal menghapus data!", 
                         "Error", 
                         JOptionPane.ERROR_MESSAGE);
                 }
+                
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
                     "Error: " + e.getMessage(), 
@@ -417,12 +503,5 @@ public class CrudDesaPanel extends JPanel {
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
-    }
-    
-    private void updateStatusBar() {
-        // Method ini bisa digunakan untuk menampilkan status bar
-        // dengan informasi jumlah total data, dll
-        int totalData = tableModel.getRowCount();
-        System.out.println("Total data desa: " + totalData);
     }
 }

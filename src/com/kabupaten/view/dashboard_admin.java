@@ -1,6 +1,6 @@
 package com.kabupaten.view;
-
 import javax.swing.*;
+import com.kabupaten.listener.DataChangeListener;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
@@ -10,11 +10,34 @@ public class dashboard_admin extends JFrame {
     private JButton btnLogout;
     private JLabel lblUser;
     private JLabel lblWelcome;
+    private CrudKecamatanPanel kecamatanPanel;
+    private CrudDesaPanel desaPanel;
+
 
     // PERBAIKAN: Constructor menerima 2 parameter (fullName dan username)
     public dashboard_admin(String fullName) {
         this.currentFullName = fullName;
 
+                // Di class Dashboard
+
+        // Saat inisialisasi panel
+        kecamatanPanel = new CrudKecamatanPanel();
+        desaPanel = new CrudDesaPanel();
+
+        // MENJADI INI (Anonymous Inner Class - kompatibel semua versi Java):
+        kecamatanPanel.addDataChangeListener(new DataChangeListener() {
+            @Override
+            public void onDataChanged() {
+                desaPanel.refreshData();
+            }
+        });
+
+        desaPanel.addDataChangeListener(new DataChangeListener() {
+            @Override
+            public void onDataChanged() {
+                kecamatanPanel.refreshData();
+            }
+        });
         initComponents();
         setupFrame();
     }
@@ -167,7 +190,11 @@ public class dashboard_admin extends JFrame {
             }
         });
         
-        btnLogout.addActionListener(e -> logout());
+        btnLogout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logout();
+            }
+        });
         rightSection.add(btnLogout);
 
         headerPanel.add(leftSection, BorderLayout.WEST);
@@ -241,11 +268,11 @@ public class dashboard_admin extends JFrame {
         });
 
         // Add tabs with icons
-        tabbedPane.addTab("Kecamatan", new CrudKecamatanPanel());
-        tabbedPane.addTab("Desa", new CrudDesaPanel());
+        tabbedPane.addTab("Kecamatan", kecamatanPanel);
+        tabbedPane.addTab("Desa", desaPanel);
         // tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
         // tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
-        tabbedPane.addTab("Warga", new CrudWargaPanel());
+        // tabbedPane.addTab("Warga", new CrudWargaPanel());
 
         return tabbedPane;
     }
@@ -257,7 +284,7 @@ public class dashboard_admin extends JFrame {
             case 1: return "🏡";  // Desa
             // case 2: return "🏘️";  // RT/RW
             // case 2: return "👤";  // Ketua
-            case 2: return "👥";  // Warga
+            // case 2: return "👥";  // Warga
             default: return "📋";
         }
     }

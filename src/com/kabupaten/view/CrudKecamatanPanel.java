@@ -2,9 +2,11 @@ package com.kabupaten.view;
 
 import com.kabupaten.model.Kecamatan;
 import com.kabupaten.dao.KecamatanDAO;
+import com.kabupaten.listener.DataChangeListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,6 +21,9 @@ public class CrudKecamatanPanel extends JPanel {
     private JLabel lblTotalDesa;
     private JLabel lblTotalKelurahan;
 
+    // PERBAIKAN: Hanya satu deklarasi field
+    private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
+    
     public CrudKecamatanPanel() {
         setLayout(new BorderLayout());
 
@@ -27,11 +32,6 @@ public class CrudKecamatanPanel extends JPanel {
         searchPanel.add(new JLabel("Pencarian:"));
         txtSearch = new JTextField(20);
         searchPanel.add(txtSearch);
-        
-        JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.setBackground(new Color(76, 175, 80));
-        btnRefresh.setForeground(Color.WHITE);
-        searchPanel.add(btnRefresh);
         
         add(searchPanel, BorderLayout.NORTH);
 
@@ -51,14 +51,14 @@ public class CrudKecamatanPanel extends JPanel {
         table.setRowHeight(25);
         
         // Set lebar kolom
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);   // ID
-        table.getColumnModel().getColumn(1).setPreferredWidth(150);  // Nama Kecamatan
-        table.getColumnModel().getColumn(2).setPreferredWidth(200);  // Alamat Kantor
-        table.getColumnModel().getColumn(3).setPreferredWidth(150);  // Nama Kepala
-        table.getColumnModel().getColumn(4).setPreferredWidth(100);  // No HP
-        table.getColumnModel().getColumn(5).setPreferredWidth(100);  // Jumlah Desa
-        table.getColumnModel().getColumn(6).setPreferredWidth(120);  // Jumlah Kelurahan
-        table.getColumnModel().getColumn(7).setPreferredWidth(80);   // Total
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(150);
+        table.getColumnModel().getColumn(2).setPreferredWidth(200);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(100);
+        table.getColumnModel().getColumn(5).setPreferredWidth(100);
+        table.getColumnModel().getColumn(6).setPreferredWidth(120);
+        table.getColumnModel().getColumn(7).setPreferredWidth(80);
         
         add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -107,11 +107,26 @@ public class CrudKecamatanPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
 
         // Event handlers
-        btnTambah.addActionListener(e -> tambahData());
-        btnEdit.addActionListener(e -> editData());
-        btnHapus.addActionListener(e -> hapusData());
-        btnDetail.addActionListener(e -> showDetail());
-        btnRefresh.addActionListener(e -> refreshTable());
+        btnTambah.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                tambahData();
+            }
+        });
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                editData();
+            }
+        });
+        btnHapus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                hapusData();
+            }
+        });
+        btnDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                showDetail();
+            }
+        });
         
         // Live search
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -133,6 +148,23 @@ public class CrudKecamatanPanel extends JPanel {
         refreshTable();
     }
 
+    // ========== LISTENER METHODS (PENTING!) ==========
+    public void addDataChangeListener(DataChangeListener listener) {
+        dataChangeListeners.add(listener);
+    }
+
+    private void notifyDataChanged() {
+        for (DataChangeListener listener : dataChangeListeners) {
+            listener.onDataChanged();
+        }
+    }
+
+    // PENTING: Method ini HARUS ada
+    public void refreshData() {
+        refreshTable();
+    }
+
+    // ========== PRIVATE METHODS ==========
     private void refreshTable() {
         tableModel.setRowCount(0);
         int totalDesa = 0;
@@ -160,7 +192,6 @@ public class CrudKecamatanPanel extends JPanel {
                 });
             }
             
-            // Update statistik
             lblTotalKecamatan.setText("Total Kecamatan: " + kecamatanList.size());
             lblTotalDesa.setText("Total Desa: " + totalDesa);
             lblTotalKelurahan.setText("Total Kelurahan: " + totalKelurahan);
@@ -208,7 +239,6 @@ public class CrudKecamatanPanel extends JPanel {
                 });
             }
             
-            // Update statistik pencarian
             lblTotalKecamatan.setText("Total Kecamatan: " + kecamatanList.size());
             lblTotalDesa.setText("Total Desa: " + totalDesa);
             lblTotalKelurahan.setText("Total Kelurahan: " + totalKelurahan);
@@ -243,6 +273,7 @@ public class CrudKecamatanPanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                     txtSearch.setText("");
+                    notifyDataChanged(); // Notify listeners
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal menambahkan data!\nNama kecamatan mungkin sudah ada.", 
@@ -302,6 +333,7 @@ public class CrudKecamatanPanel extends JPanel {
                         "Sukses", 
                         JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
+                    notifyDataChanged(); // Notify listeners
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal mengupdate data!\nNama kecamatan mungkin sudah ada.", 
@@ -335,7 +367,6 @@ public class CrudKecamatanPanel extends JPanel {
         int jumlahKelurahan = (int) table.getValueAt(row, 6);
         int total = jumlahDesa + jumlahKelurahan;
         
-        // Peringatan jika ada desa/kelurahan terkait
         if (total > 0) {
             JOptionPane.showMessageDialog(this,
                 "Tidak dapat menghapus kecamatan!\n" +
@@ -366,6 +397,7 @@ public class CrudKecamatanPanel extends JPanel {
                         "Sukses", 
                         JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
+                    notifyDataChanged(); // Notify listeners
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal menghapus data!", 
