@@ -1,4 +1,5 @@
 package com.kabupaten.view;
+
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import com.kabupaten.database.DatabaseConnection;
@@ -6,270 +7,447 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import javax.imageio.ImageIO;
 
 /**
  * Frame untuk login aplikasi dengan validasi role
+ * Guest bisa langsung login tanpa username/password
  */
 public class LoginFrame extends JFrame {
     private JTextField txtUsername;
     private JPasswordField txtPassword;
-    private JComboBox<String> cmbRole; // TAMBAHAN: ComboBox untuk memilih role
+    private JComboBox<String> cmbRole;
     private JButton btnLogin;
     private JButton btnExit;
-    private String userRole; // Menyimpan role user dari database
-    private String fullName; // Menyimpan nama lengkap user
-
+    private String userRole;
+    private String fullName;
+    
+    // Komponen untuk toggle
+    private JPanel usernamePanel;
+    private JPanel passwordPanel;
+    private JLabel lblUsername;
+    private JLabel lblPassword;
+    
+    // Warna tema dari loading screen
+    private static final Color PRIMARY_COLOR = new Color(30, 60, 114);    // Biru tua
+    private static final Color SECONDARY_COLOR = new Color(42, 82, 152);  // Biru sedang
+    private static final Color ACCENT_COLOR = new Color(79, 172, 254);    // Biru muda/cyan
+    private static final Color CREAM_COLOR = new Color(255, 251, 245);    // Cream untuk background
+    
     public LoginFrame() {
         initComponents();
         setupFrame();
     }
 
     private void initComponents() {
-        setTitle("Login - Aplikasi Pendataan Kabupaten Sidoarjo");
+        setTitle("Login - Sistem Pendataan Kabupaten");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        // Main panel dengan gradient background
-        JPanel mainPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, new Color(74, 144, 226),
-                    0, getHeight(), new Color(39, 82, 139)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        mainPanel.setLayout(new GridBagLayout());
-
-        // Login panel
-        JPanel loginPanel = createLoginPanel();
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(40, 40, 40, 40);
-
-        mainPanel.add(loginPanel, gbc);
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 0));
+        mainPanel.setBackground(CREAM_COLOR);
+        
+        // Panel kiri - Logo dan judul
+        JPanel leftPanel = createLeftPanel();
+        
+        // Panel kanan - Form login
+        JPanel rightPanel = createRightPanel();
+        
+        mainPanel.add(leftPanel, BorderLayout.WEST);
+        mainPanel.add(rightPanel, BorderLayout.CENTER);
+        
         add(mainPanel);
     }
-
-    private JPanel createLoginPanel() {
-        JPanel shadowPanel = new JPanel() {
+    
+    // Class untuk panel kiri dengan gradient
+    class GradientPatternPanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Gradient background yang halus
+            GradientPaint gradient = new GradientPaint(
+                0, 0, PRIMARY_COLOR,
+                getWidth(), getHeight(), SECONDARY_COLOR
+            );
+            g2d.setPaint(gradient);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+        }
+    }
+    
+    private JPanel createLeftPanel() {
+        JPanel panel = new GradientPatternPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setPreferredSize(new Dimension(340, 600));
+        
+        // Container utama
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        mainContainer.setOpaque(false);
+        mainContainer.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+        
+        // Panel untuk konten vertikal
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+        
+        // Logo
+        JPanel logoPanel = createLogoPanel();
+        logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(logoPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        
+        // Title
+        JLabel titleLabel = new JLabel("SISTEM");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+        
+        JLabel subtitleLabel = new JLabel("PENDATAAN KABUPATEN");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        subtitleLabel.setForeground(new Color(220, 230, 255));
+        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(subtitleLabel);
+        
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        
+        // Separator
+        JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+        separator.setForeground(new Color(255, 255, 255, 80));
+        separator.setMaximumSize(new Dimension(200, 1));
+        separator.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(separator);
+        
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        
+        // Description
+        JLabel descLabel = new JLabel("<html><div style='text-align: center; padding: 0 15px;'>"
+            + "Aplikasi Pengelolaan Data<br>"
+            + "Wilayah Administratif Terpadu"
+            + "</div></html>");
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        descLabel.setForeground(new Color(220, 230, 255));
+        descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(descLabel);
+        
+        // Spacer untuk push footer ke bawah
+        contentPanel.add(Box.createVerticalGlue());
+        
+        // Footer dengan version
+        JLabel versionLabel = new JLabel("v1.0.0 • © 2025");
+        versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        versionLabel.setForeground(new Color(180, 200, 255));
+        versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(versionLabel);
+        
+        mainContainer.add(contentPanel, BorderLayout.CENTER);
+        panel.add(mainContainer, BorderLayout.CENTER);
+        
+        return panel;
+    }
+    
+    private JPanel createLogoPanel() {
+        JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(new Color(0, 0, 0, 40));
-                g2.fillRoundRect(6, 6, getWidth() - 12, getHeight() - 12, 30, 30);
-                g2.dispose();
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                int size = 130;
+                int x = (getWidth() - size) / 2;
+                int y = 0;
+                
+                try {
+                    // Load logo
+                    BufferedImage img = ImageIO.read(
+                        getClass().getResource("/com/kabupaten/img/logo.jpg")
+                    );
+                    
+                    // Shadow effect
+                    g2.setColor(new Color(0, 0, 0, 30));
+                    g2.fillRoundRect(x + 4, y + 4, size, size, 20, 20);
+                    
+                    // Main square with accent color
+                    g2.setColor(ACCENT_COLOR);
+                    g2.fillRoundRect(x, y, size, size, 20, 20);
+                    
+                    // White border
+                    g2.setStroke(new BasicStroke(2.5f));
+                    g2.setColor(Color.WHITE);
+                    g2.drawRoundRect(x, y, size, size, 20, 20);
+                    
+                    if (img != null) {
+                        // Draw logo with padding
+                        int padding = 14;
+                        int imgSize = size - (padding * 2);
+                        g2.drawImage(img, x + padding, y + padding, imgSize, imgSize, null);
+                    } else {
+                        // Fallback text
+                        g2.setColor(Color.WHITE);
+                        g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+                        String text = "SK";
+                        FontMetrics fm = g2.getFontMetrics();
+                        int textX = x + (size - fm.stringWidth(text)) / 2;
+                        int textY = y + (size + fm.getAscent()) / 2 - 8;
+                        g2.drawString(text, textX, textY);
+                    }
+                    
+                } catch (Exception e) {
+                    // Fallback design
+                    g2.setColor(ACCENT_COLOR);
+                    g2.fillRoundRect(x, y, size, size, 20, 20);
+                    
+                    g2.setStroke(new BasicStroke(2.5f));
+                    g2.setColor(Color.WHITE);
+                    g2.drawRoundRect(x, y, size, size, 20, 20);
+                    
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+                    g2.setColor(Color.WHITE);
+                    FontMetrics fm = g2.getFontMetrics();
+                    String text = "LOGO";
+                    int textX = x + (size - fm.stringWidth(text)) / 2;
+                    int textY = y + (size + fm.getAscent()) / 2 - 8;
+                    g2.drawString(text, textX, textY);
+                }
             }
         };
-        shadowPanel.setOpaque(false);
-        shadowPanel.setLayout(new BorderLayout());
+        
+        panel.setPreferredSize(new Dimension(150, 150));
+        panel.setMaximumSize(new Dimension(150, 150));
+        panel.setOpaque(false);
+        
+        return panel;
+    }
 
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true),
-            BorderFactory.createEmptyBorder(30, 40, 30, 40)
-        ));
-        panel.setLayout(new GridBagLayout());
-
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        // Logo dan Title di satu baris, center
-        JPanel logoTitlePanel = new JPanel(new BorderLayout());
-        logoTitlePanel.setOpaque(false);
-
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/com/kabupaten/img/logo.jpg"));
-        Image scaledImage = originalIcon.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(scaledImage);
-
-        BufferedImage circleImage = new BufferedImage(70, 70, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = circleImage.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Buat masking lingkaran
-        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, 70, 70);
-        g2.setClip(circle);
-
-        // Gambar image ke dalam lingkaran
-        g2.drawImage(scaledImage, 0, 0, null);
-        g2.dispose();
-
-        // Buat ImageIcon dari hasil cropping
-        ImageIcon roundedIcon = new ImageIcon(circleImage);
-
-        JLabel logoLabel = new JLabel(roundedIcon);
-        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        JLabel titleLabel = new JLabel("SISTEM PENDATAAN KABUPATEN");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(39, 82, 139));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        logoTitlePanel.add(logoLabel, BorderLayout.NORTH);
-        logoTitlePanel.add(titleLabel, BorderLayout.CENTER);
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(-10, 0, 25, 0);
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(logoTitlePanel, gbc);
-
-        // Username
-        JLabel lblUsername = new JLabel("Username");
-        lblUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblUsername.setForeground(new Color(39, 82, 139));
-        gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        gbc.insets = new Insets(0, 0, 5, 0);
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(lblUsername, gbc);
-
-        JPanel usernamePanel = new JPanel(new BorderLayout());
+    private JPanel createRightPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(CREAM_COLOR);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        
+        // Container untuk form
+        JPanel formContainer = new JPanel(new GridBagLayout());
+        formContainer.setBackground(CREAM_COLOR);
+        
+        // Panel form dengan padding yang tepat
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setOpaque(false);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(60, 60, 60, 60));
+        formPanel.setPreferredSize(new Dimension(480, 600));
+        
+        // Header section
+        JLabel welcomeLabel = new JLabel("Selamat Datang");
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        welcomeLabel.setForeground(PRIMARY_COLOR);
+        welcomeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(welcomeLabel);
+        
+        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JLabel descLabel = new JLabel("Silakan login untuk mengakses sistem");
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        descLabel.setForeground(new Color(100, 100, 120));
+        descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(descLabel);
+        
+        formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        
+        // Username field
+        lblUsername = new JLabel("Username");
+        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblUsername.setForeground(PRIMARY_COLOR);
+        lblUsername.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(lblUsername);
+        
+        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        usernamePanel = new JPanel(new BorderLayout());
         usernamePanel.setBackground(Color.WHITE);
-        usernamePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
+        usernamePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
+            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        usernamePanel.setMaximumSize(new Dimension(380, 50));
+        usernamePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         txtUsername = new JTextField(20);
         txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtUsername.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        txtUsername.setBorder(BorderFactory.createEmptyBorder());
+        txtUsername.setBackground(Color.WHITE);
         usernamePanel.add(txtUsername, BorderLayout.CENTER);
-
-        gbc.gridy = 2;
-        gbc.insets = new Insets(0, 0, 15, 0);
-        panel.add(usernamePanel, gbc);
-
-        // Password
-        JLabel lblPassword = new JLabel("Password");
-        lblPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblPassword.setForeground(new Color(39, 82, 139));
-        gbc.gridy = 3;
-        gbc.insets = new Insets(0, 0, 5, 0);
-        panel.add(lblPassword, gbc);
-
-        JPanel passwordPanel = new JPanel(new BorderLayout());
+        
+        formPanel.add(usernamePanel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Password field
+        lblPassword = new JLabel("Password");
+        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblPassword.setForeground(PRIMARY_COLOR);
+        lblPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(lblPassword);
+        
+        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        passwordPanel = new JPanel(new BorderLayout());
         passwordPanel.setBackground(Color.WHITE);
-        passwordPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
+        passwordPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
+            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        passwordPanel.setMaximumSize(new Dimension(380, 50));
+        passwordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         txtPassword = new JPasswordField(20);
         txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtPassword.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        txtPassword.setBorder(BorderFactory.createEmptyBorder());
+        txtPassword.setBackground(Color.WHITE);
+        txtPassword.setEchoChar('•');
         passwordPanel.add(txtPassword, BorderLayout.CENTER);
-
-        gbc.gridy = 4;
-        gbc.insets = new Insets(0, 0, 15, 0);
-        panel.add(passwordPanel, gbc);
-
-        // TAMBAHAN: Role ComboBox
-        JLabel lblRole = new JLabel("Login Sebagai");
-        lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblRole.setForeground(new Color(39, 82, 139));
-        gbc.gridy = 5;
-        gbc.insets = new Insets(0, 0, 5, 0);
-        panel.add(lblRole, gbc);
-
-        JPanel rolePanel = new JPanel(new BorderLayout());
-        rolePanel.setBackground(Color.WHITE);
-        rolePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true));
         
-        // ComboBox dengan opsi role
-        String[] roles = {"Admin", "Guest", "bupati"};
+        formPanel.add(passwordPanel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 25)));
+        
+        // Role selection
+        JLabel lblRole = new JLabel("Login Sebagai");
+        lblRole.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblRole.setForeground(PRIMARY_COLOR);
+        lblRole.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(lblRole);
+        
+        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JPanel comboPanel = new JPanel(new BorderLayout());
+        comboPanel.setBackground(Color.WHITE);
+        comboPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        comboPanel.setMaximumSize(new Dimension(380, 48));
+        comboPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        String[] roles = {"Admin", "Guest", "Bupati"};
         cmbRole = new JComboBox<>(roles);
         cmbRole.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cmbRole.setBackground(Color.WHITE);
-        cmbRole.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
+        cmbRole.setBorder(BorderFactory.createEmptyBorder());
         cmbRole.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Styling ComboBox
-        cmbRole.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, 
-                                                         int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (isSelected) {
-                    setBackground(new Color(74, 144, 226));
-                    setForeground(Color.WHITE);
-                } else {
-                    setBackground(Color.WHITE);
-                    setForeground(Color.BLACK);
-                }
-                setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-                return c;
-            }
-        });
+        comboPanel.add(cmbRole, BorderLayout.CENTER);
+        formPanel.add(comboPanel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         
-        rolePanel.add(cmbRole, BorderLayout.CENTER);
-
-        gbc.gridy = 6;
-        gbc.insets = new Insets(0, 0, 20, 0);
-        panel.add(rolePanel, gbc);
-
         // Button panel
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
-        buttonPanel.setBackground(Color.WHITE);
-
-        btnLogin = createStyledButton("LOGIN", new Color(46, 125, 50));
-        btnExit = createStyledButton("KELUAR", new Color(198, 40, 40));
-
-        btnLogin.setPreferredSize(new Dimension(120, 40));
-        btnExit.setPreferredSize(new Dimension(120, 40));
-
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        btnExit.setFont(new Font("Segoe UI", Font.BOLD, 15));
-
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        btnLogin = createStyledButton("MASUK", ACCENT_COLOR);
+        btnExit = createStyledButton("KELUAR", new Color(120, 120, 120));
+        
+        btnLogin.setPreferredSize(new Dimension(150, 48));
+        btnExit.setPreferredSize(new Dimension(150, 48));
+        
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnExit);
-
-        gbc.gridy = 7;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        panel.add(buttonPanel, gbc);
-
-        shadowPanel.add(panel, BorderLayout.CENTER);
-
+        
+        formPanel.add(buttonPanel);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        
+        // Footer
+        JLabel footerLabel = new JLabel("Sistem Pendataan Kabupaten v1.0");
+        footerLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        footerLabel.setForeground(new Color(150, 150, 150));
+        footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formPanel.add(footerLabel);
+        
+        formContainer.add(formPanel);
+        panel.add(formContainer, BorderLayout.CENTER);
+        
         setupActionListeners();
-
-        return shadowPanel;
+        
+        return panel;
     }
 
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bgColor.darker().darker(), 1),
+            BorderFactory.createEmptyBorder(12, 25, 12, 25)
+        ));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setOpaque(true);
-
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
+        
+        button.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(bgColor.darker());
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(bgColor.brighter());
             }
+            
             @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+            public void mouseExited(MouseEvent e) {
                 button.setBackground(bgColor);
             }
+            
+            @Override
+            public void mousePressed(MouseEvent e) {
+                button.setBackground(bgColor.darker());
+            }
         });
-
+        
         return button;
     }
 
     private void setupActionListeners() {
         btnLogin.addActionListener(e -> performLogin());
-        txtUsername.addActionListener(e -> txtPassword.requestFocus());
         btnExit.addActionListener(e -> exit());
+        txtUsername.addActionListener(e -> txtPassword.requestFocus());
         txtPassword.addActionListener(e -> performLogin());
+        
+        cmbRole.addActionListener(e -> toggleCredentialFields());
+    }
+    
+    // Method untuk show/hide username dan password field
+    private void toggleCredentialFields() {
+        String selectedRole = (String) cmbRole.getSelectedItem();
+        boolean isGuest = "Guest".equals(selectedRole);
+        
+        lblUsername.setVisible(!isGuest);
+        usernamePanel.setVisible(!isGuest);
+        lblPassword.setVisible(!isGuest);
+        passwordPanel.setVisible(!isGuest);
+        
+        if (isGuest) {
+            txtUsername.setText("");
+            txtPassword.setText("");
+        }
+        
+        revalidate();
+        repaint();
     }
 
-    // Route page berdasarkan role dengan validasi ganda
     private void performLogin() {
+        String selectedRole = ((String) cmbRole.getSelectedItem()).toLowerCase();
+
+        // Guest langsung login tanpa validasi
+        if ("guest".equalsIgnoreCase(selectedRole)) {
+            this.dispose();
+            SwingUtilities.invokeLater(() -> new guest_dashboard().setVisible(true));
+            return;
+        }
+
+        // Validasi Admin dan Bupati
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword());
-        String selectedRole = ((String) cmbRole.getSelectedItem()).toLowerCase(); // TAMBAHAN: Ambil role dari combobox
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -279,35 +457,20 @@ public class LoginFrame extends JFrame {
             return;
         }
 
-        // PERBAIKAN: Validasi login dengan role yang dipilih
         if (validateLogin(username, password, selectedRole)) {
-            // Cek apakah role dari database sesuai dengan role yang dipilih
             if (userRole != null && userRole.equalsIgnoreCase(selectedRole)) {
-                // Role cocok, lanjutkan login
-                if (userRole.equalsIgnoreCase("admin")) {
-                    this.dispose();
-                    SwingUtilities.invokeLater(() -> {
+                this.dispose();
+                SwingUtilities.invokeLater(() -> {
+                    if (userRole.equalsIgnoreCase("admin")) {
                         new dashboard_admin(fullName).setVisible(true);
-                    });
-                } else if (userRole.equalsIgnoreCase("guest")) {
-                    this.dispose();
-                    SwingUtilities.invokeLater(() -> {
-                        new dashboard_guest(fullName).setVisible(true);
-                    });
-                }
-                else if (userRole.equalsIgnoreCase("bupati")) {
-                    this.dispose();
-                    SwingUtilities.invokeLater(() -> {
+                    } else if (userRole.equalsIgnoreCase("bupati")) {
                         new dashboard_bupati(fullName).setVisible(true);
-                    });
-                }
+                    }
+                });
             } else {
-                // Role tidak cocok
                 JOptionPane.showMessageDialog(this,
-                    "Role yang dipilih tidak sesuai!\n" +
-                    "Anda memilih: " + selectedRole.toUpperCase() + "\n" +
-                    "Role sebenarnya: " + (userRole != null ? userRole.toUpperCase() : "Tidak diketahui"),
-                    "Login Gagal - Role Tidak Cocok",
+                    "Role yang dipilih tidak sesuai!",
+                    "Login Gagal",
                     JOptionPane.ERROR_MESSAGE);
                 txtPassword.setText("");
                 txtPassword.requestFocus();
@@ -318,47 +481,32 @@ public class LoginFrame extends JFrame {
                 "Login Gagal",
                 JOptionPane.ERROR_MESSAGE);
             txtPassword.setText("");
-            txtUsername.setText("");
             txtUsername.requestFocus();
         }
     }
 
-    // PERBAIKAN: Validasi login dengan parameter role
     private boolean validateLogin(String username, String password, String selectedRole) {
-        // Query untuk validasi username, password, dan role
+        String hashedPassword = hashPassword(password);
         String sql = "SELECT role, nama_lengkap FROM users WHERE username = ? AND password = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hashedPassword);
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    // Ambil role dan fullName dari database
                     userRole = rs.getString("role");
                     fullName = rs.getString("nama_lengkap");
                     
-                    // Jika nama_lengkap null atau kosong, gunakan username sebagai fallback
                     if (fullName == null || fullName.trim().isEmpty()) {
                         fullName = username;
                     }
                     
-                    // VALIDASI GANDA: Cek apakah role dari database sama dengan role yang dipilih
-                    boolean roleMatch = userRole != null && userRole.equalsIgnoreCase(selectedRole);
-                    
-                    System.out.println("=== LOGIN VALIDATION ===");
-                    System.out.println("Username: " + username);
-                    System.out.println("Full Name: " + fullName);
-                    System.out.println("Role dari Database: " + userRole);
-                    System.out.println("Role yang Dipilih: " + selectedRole);
-                    System.out.println("Role Match: " + roleMatch);
-                    System.out.println("========================");
-                    
-                    return true; // Username dan password benar, validasi role dilakukan di performLogin()
+                    return true;
                 }
-                return false; // Username atau password salah
+                return false;
             }
         } catch (SQLException e) {
             System.err.println("Error validating login: " + e.getMessage());
@@ -371,6 +519,21 @@ public class LoginFrame extends JFrame {
         }
     }
 
+    private String hashPassword(String plain) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(plain.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return plain;
+        }
+    }
+
     private void exit() {
         int confirm = JOptionPane.showConfirmDialog(this, 
             "Apakah Anda yakin ingin Keluar?", 
@@ -378,17 +541,19 @@ public class LoginFrame extends JFrame {
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> {
-                System.exit(0);
-            });
+            System.exit(0);
         }
     }
 
     private void setupFrame() {
         pack();
         setLocationRelativeTo(null);
-        setMinimumSize(getSize());
-        SwingUtilities.invokeLater(() -> txtUsername.requestFocus());
+        setSize(900, 600);
+        setMinimumSize(new Dimension(900, 600));
+        
+        SwingUtilities.invokeLater(() -> {
+            txtUsername.requestFocus();
+            toggleCredentialFields(); // Initialize visibility
+        });
     }
 }

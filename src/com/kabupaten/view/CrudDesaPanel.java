@@ -48,10 +48,6 @@ public class CrudDesaPanel extends JPanel {
         txtSearch = new JTextField(15);
         searchPanel.add(txtSearch);
         
-        JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.setBackground(new Color(76, 175, 80));
-        btnRefresh.setForeground(Color.WHITE);
-        searchPanel.add(btnRefresh);
         
         add(searchPanel, BorderLayout.NORTH);
 
@@ -108,7 +104,6 @@ public class CrudDesaPanel extends JPanel {
         btnEdit.addActionListener(e -> editData());
         btnHapus.addActionListener(e -> hapusData());
         btnDetail.addActionListener(e -> showDetail());
-        btnRefresh.addActionListener(e -> refreshTable());
         
         // Live search
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
