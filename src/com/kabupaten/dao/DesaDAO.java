@@ -12,7 +12,7 @@ import java.util.List;
 public class DesaDAO {
 
     private Connection connection;
-    
+
     public DesaDAO() {
         this.connection = DatabaseConnection.getConnection();
     }
@@ -23,13 +23,13 @@ public class DesaDAO {
     public List<Desa> getAllDesa() {
         List<Desa> desaList = new ArrayList<>();
         String sql = "SELECT d.*, k.nama_kecamatan " +
-                    "FROM desa_kelurahan d " +
-                    "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                    "ORDER BY d.id_desa ASC";
-        
+                "FROM desa_kelurahan d " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "ORDER BY d.id_desa ASC";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()) {
-            
+                ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 Desa desa = mapResultSetToDesa(rs);
                 desaList.add(desa);
@@ -38,7 +38,7 @@ public class DesaDAO {
             System.err.println("Error mengambil data Desa: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return desaList;
     }
 
@@ -48,19 +48,19 @@ public class DesaDAO {
     public List<Desa> searchDesa(String keyword) {
         List<Desa> desaList = new ArrayList<>();
         String sql = "SELECT d.*, k.nama_kecamatan " +
-                    "FROM desa_kelurahan d " +
-                    "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                    "WHERE d.nama_desa LIKE ? OR d.nama_kepala LIKE ? OR d.alamat_kantor LIKE ? " +
-                    "OR k.nama_kecamatan LIKE ? " +
-                    "ORDER BY d.id_desa ASC";
-        
+                "FROM desa_kelurahan d " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE d.nama_desa LIKE ? OR d.nama_kepala LIKE ? OR d.alamat_kantor LIKE ? " +
+                "OR k.nama_kecamatan LIKE ? " +
+                "ORDER BY d.id_desa ASC";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String searchPattern = "%" + keyword + "%";
             stmt.setString(1, searchPattern);
             stmt.setString(2, searchPattern);
             stmt.setString(3, searchPattern);
             stmt.setString(4, searchPattern);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Desa desa = mapResultSetToDesa(rs);
@@ -71,7 +71,7 @@ public class DesaDAO {
             System.err.println("Error mencari Desa: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return desaList;
     }
 
@@ -81,14 +81,14 @@ public class DesaDAO {
     public List<Desa> getDesaByKecamatan(int idKecamatan) {
         List<Desa> desaList = new ArrayList<>();
         String sql = "SELECT d.*, k.nama_kecamatan " +
-                    "FROM desa_kelurahan d " +
-                    "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                    "WHERE d.id_kecamatan = ? " +
-                    "ORDER BY d.nama_desa ASC";
-        
+                "FROM desa_kelurahan d " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE d.id_kecamatan = ? " +
+                "ORDER BY d.nama_desa ASC";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idKecamatan);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Desa desa = mapResultSetToDesa(rs);
@@ -99,7 +99,7 @@ public class DesaDAO {
             System.err.println("Error mengambil Desa by Kecamatan: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return desaList;
     }
 
@@ -108,19 +108,19 @@ public class DesaDAO {
      */
     public boolean isDuplicateDesa(String namaDesa, int idKecamatan, Integer excludeId) {
         String sql = "SELECT COUNT(*) FROM desa_kelurahan WHERE nama_desa = ? AND id_kecamatan = ?";
-        
+
         if (excludeId != null) {
             sql += " AND id_desa != ?";
         }
-        
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, namaDesa);
             stmt.setInt(2, idKecamatan);
-            
+
             if (excludeId != null) {
                 stmt.setInt(3, excludeId);
             }
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -130,7 +130,7 @@ public class DesaDAO {
             System.err.println("Error cek duplikat Desa: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return false;
     }
 
@@ -140,14 +140,14 @@ public class DesaDAO {
     public boolean addDesa(Desa desa) {
         // Cek duplikat terlebih dahulu
         if (isDuplicateDesa(desa.getNamaDesa(), desa.getIdKecamatan(), null)) {
-            System.err.println("Data Desa duplikat: " + desa.getNamaDesa() + 
-                             " di Kecamatan ID: " + desa.getIdKecamatan());
+            System.err.println("Data Desa duplikat: " + desa.getNamaDesa() +
+                    " di Kecamatan ID: " + desa.getIdKecamatan());
             return false;
         }
-        
+
         String sql = "INSERT INTO desa_kelurahan (id_kecamatan, nama_desa, jenis, alamat_kantor, " +
-                    "nama_kepala, alamat_rumah_kepala, no_hp) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
+                "nama_kepala, alamat_rumah_kepala, no_hp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, desa.getIdKecamatan());
             stmt.setString(2, desa.getNamaDesa());
@@ -156,9 +156,9 @@ public class DesaDAO {
             stmt.setString(5, desa.getNamaKepala());
             stmt.setString(6, desa.getAlamatRumahKepala());
             stmt.setString(7, desa.getNoHp());
-            
+
             int rowsAffected = stmt.executeUpdate();
-            
+
             if (rowsAffected > 0) {
                 // Ambil ID yang baru dibuat
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
@@ -169,7 +169,7 @@ public class DesaDAO {
                 System.out.println("Data Desa berhasil ditambahkan dengan ID: " + desa.getIdDesa());
                 return true;
             }
-            
+
             return false;
         } catch (SQLException e) {
             System.err.println("Error menambah Desa: " + e.getMessage());
@@ -187,10 +187,10 @@ public class DesaDAO {
             System.err.println("Data Desa duplikat: " + desa.getNamaDesa());
             return false;
         }
-        
+
         String sql = "UPDATE desa_kelurahan SET id_kecamatan=?, nama_desa=?, jenis=?, alamat_kantor=?, " +
-                    "nama_kepala=?, alamat_rumah_kepala=?, no_hp=? WHERE id_desa=?";
-        
+                "nama_kepala=?, alamat_rumah_kepala=?, no_hp=? WHERE id_desa=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, desa.getIdKecamatan());
             stmt.setString(2, desa.getNamaDesa());
@@ -200,13 +200,13 @@ public class DesaDAO {
             stmt.setString(6, desa.getAlamatRumahKepala());
             stmt.setString(7, desa.getNoHp());
             stmt.setInt(8, desa.getIdDesa());
-            
+
             int rowsAffected = stmt.executeUpdate();
-            
+
             if (rowsAffected > 0) {
                 System.out.println("Data Desa berhasil diupdate. ID: " + desa.getIdDesa());
             }
-            
+
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error mengupdate Desa: " + e.getMessage());
@@ -220,15 +220,15 @@ public class DesaDAO {
      */
     public boolean deleteDesa(int idDesa) {
         String sql = "DELETE FROM desa_kelurahan WHERE id_desa=?";
-        
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idDesa);
             int rowsAffected = stmt.executeUpdate();
-            
+
             if (rowsAffected > 0) {
                 System.out.println("Data Desa berhasil dihapus. ID: " + idDesa);
             }
-            
+
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("Error menghapus Desa: " + e.getMessage());
@@ -242,10 +242,10 @@ public class DesaDAO {
      */
     public Desa getDesaById(int idDesa) {
         String sql = "SELECT d.*, k.nama_kecamatan " +
-                    "FROM desa_kelurahan d " +
-                    "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                    "WHERE d.id_desa = ?";
-        
+                "FROM desa_kelurahan d " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE d.id_desa = ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idDesa);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -257,7 +257,31 @@ public class DesaDAO {
             System.err.println("Error mengambil Desa by ID: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
+        return null;
+    }
+
+    /**
+     * Mengambil Desa berdasarkan Nama
+     */
+    public Desa getDesaByName(String namaDesa) {
+        String sql = "SELECT d.*, k.nama_kecamatan " +
+                "FROM desa_kelurahan d " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE d.nama_desa = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, namaDesa);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToDesa(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error mengambil Desa by Name: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         return null;
     }
 
@@ -267,10 +291,10 @@ public class DesaDAO {
     public List<String> getDesaNamesByKecamatan(String namaKecamatan) {
         List<String> desaList = new ArrayList<>();
         String sql = "SELECT d.nama_desa FROM desa_kelurahan d " +
-                    "JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                    "WHERE k.nama_kecamatan = ? " +
-                    "ORDER BY d.nama_desa";
-        
+                "JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE k.nama_kecamatan = ? " +
+                "ORDER BY d.nama_desa";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, namaKecamatan);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -285,7 +309,7 @@ public class DesaDAO {
             System.err.println("Error mengambil daftar nama desa: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return desaList;
     }
 
@@ -304,7 +328,7 @@ public class DesaDAO {
         desa.setNoHp(rs.getString("no_hp"));
         desa.setCreatedAt(rs.getTimestamp("created_at"));
         desa.setUpdatedAt(rs.getTimestamp("updated_at"));
-        
+
         // Set nama kecamatan dari join
         try {
             desa.setNamaKecamatan(rs.getString("nama_kecamatan"));
@@ -312,19 +336,19 @@ public class DesaDAO {
             // Kolom tidak ada dalam resultset
             desa.setNamaKecamatan(null);
         }
-        
+
         return desa;
     }
-    
+
     /**
      * Mendapatkan total jumlah Desa
      */
     public int getTotalCount() {
         String sql = "SELECT COUNT(*) as total FROM desa_kelurahan";
-        
+
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
+                ResultSet rs = stmt.executeQuery(sql)) {
+
             if (rs.next()) {
                 return rs.getInt("total");
             }
@@ -332,7 +356,7 @@ public class DesaDAO {
             System.err.println("Error menghitung total Desa: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return 0;
     }
 
@@ -341,7 +365,7 @@ public class DesaDAO {
      */
     public int getCountByKecamatan(int idKecamatan) {
         String sql = "SELECT COUNT(*) as total FROM desa_kelurahan WHERE id_kecamatan = ?";
-        
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idKecamatan);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -353,7 +377,7 @@ public class DesaDAO {
             System.err.println("Error menghitung desa per kecamatan: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return 0;
     }
 }

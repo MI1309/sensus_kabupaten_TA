@@ -1,13 +1,17 @@
 package com.kabupaten.view;
 
 import com.kabupaten.model.RTRW;
+import com.kabupaten.model.Desa;
+import com.kabupaten.dao.DesaDAO;
+import com.kabupaten.util.ValidationUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class RTRWFormDialog extends JDialog {
-    private JTextField txtKecamatan;
+    private JComboBox<String> cmbDesa;
     private JTextField txtRW;
     private JTextField txtRT;
     private JTextField txtNamaKetua;
@@ -15,6 +19,7 @@ public class RTRWFormDialog extends JDialog {
     private JTextArea txtAlamat;
     private JComboBox<String> cmbStatus;
     
+    private DesaDAO desaDAO = new DesaDAO();
     private boolean confirmed = false;
     private RTRW rtrw;
 
@@ -41,12 +46,13 @@ public class RTRWFormDialog extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Kecamatan/Desa
+        // Desa (ComboBox)
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Desa:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
-        txtKecamatan = new JTextField(20);
-        formPanel.add(txtKecamatan, gbc);
+        cmbDesa = new JComboBox<>();
+        loadDesaList();
+        formPanel.add(cmbDesa, gbc);
 
         // RW
         gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE;
@@ -93,7 +99,15 @@ public class RTRWFormDialog extends JDialog {
         JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
         formPanel.add(scrollAlamat, gbc);
 
+        formPanel.add(scrollAlamat, gbc);
+
         add(formPanel, BorderLayout.CENTER);
+
+        // Real-time input filtering
+        ValidationUtils.applyNumericFilter(txtRT, 3);
+        ValidationUtils.applyNumericFilter(txtRW, 3);
+        ValidationUtils.applyStringOnlyFilter(txtNamaKetua);
+        ValidationUtils.applyNumericFilter(txtKontak, 15);
 
         // Panel tombol
         JPanel buttonPanel = new JPanel(new FlowLayout());
@@ -129,14 +143,37 @@ public class RTRWFormDialog extends JDialog {
             }
         });
 
+        // Tambahkan ActionListener untuk Enter key pada text field (Focus Traversal)
+        cmbDesa.addActionListener(e -> txtRW.requestFocus());
+        txtRW.addActionListener(e -> txtRT.requestFocus());
+        txtRT.addActionListener(e -> txtNamaKetua.requestFocus());
+        txtNamaKetua.addActionListener(e -> txtKontak.requestFocus());
+        txtKontak.addActionListener(e -> {
+            if (validateInput()) {
+                saveData();
+                confirmed = true;
+                dispose();
+            }
+        });
+
         pack();
         setLocationRelativeTo(getParent());
     }
 
+    private void loadDesaList() {
+        cmbDesa.removeAllItems();
+        cmbDesa.addItem("-- Pilih Desa --");
+        List<Desa> list = desaDAO.getAllDesa();
+        for (Desa d : list) {
+            cmbDesa.addItem(d.getNamaDesa());
+        }
+    }
+
     private void loadData() {
         if (rtrw != null) {
-            txtKecamatan.setText(rtrw.getKecamatan() != null ? rtrw.getKecamatan() : 
-                                (rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : ""));
+            if (rtrw.getNamaDesa() != null) {
+                cmbDesa.setSelectedItem(rtrw.getNamaDesa());
+            }
             txtRW.setText(rtrw.getRw() != null ? rtrw.getRw() : "");
             txtRT.setText(rtrw.getRt() != null ? rtrw.getRt() : "");
             txtNamaKetua.setText(rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "");
@@ -147,45 +184,65 @@ public class RTRWFormDialog extends JDialog {
     }
 
     private boolean validateInput() {
-        if (txtKecamatan.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Desa tidak boleh kosong!");
-            txtKecamatan.requestFocus();
+        if (cmbDesa.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih Desa!");
+            cmbDesa.requestFocus();
             return false;
         }
 
-        if (txtRW.getText().trim().isEmpty()) {
+        String rwStr = txtRW.getText().trim();
+        String rtStr = txtRT.getText().trim();
+        String kontak = txtKontak.getText().trim();
+
+        if (rwStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "RW tidak boleh kosong!");
             txtRW.requestFocus();
             return false;
         }
 
-        if (txtRT.getText().trim().isEmpty()) {
+        if (rtStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "RT tidak boleh kosong!");
             txtRT.requestFocus();
             return false;
         }
 
-        try {
-            Integer.parseInt(txtRW.getText().trim());
-        } catch (NumberFormatException e) {
+        if (!rwStr.matches("\\d+")) {
             JOptionPane.showMessageDialog(this, "RW harus berupa angka!");
             txtRW.requestFocus();
             return false;
         }
 
-        try {
-            Integer.parseInt(txtRT.getText().trim());
-        } catch (NumberFormatException e) {
+        if (!rtStr.matches("\\d+")) {
             JOptionPane.showMessageDialog(this, "RT harus berupa angka!");
             txtRT.requestFocus();
             return false;
         }
 
+        String namaKetua = txtNamaKetua.getText().trim();
+        if (!namaKetua.isEmpty() && !namaKetua.matches("[a-zA-Z\\s]*")) {
+            JOptionPane.showMessageDialog(this, "Nama Ketua hanya boleh berisi huruf dan spasi!");
+            txtNamaKetua.requestFocus();
+            return false;
+        }
+
+        if (!kontak.isEmpty() && !kontak.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "Kontak harus berupa angka!");
+            txtKontak.requestFocus();
+            return false;
+        }
+
+        // Format RT dan RW menjadi 3 digit (misal 1 -> 001)
+        int rw = Integer.parseInt(rwStr);
+        int rt = Integer.parseInt(rtStr);
+        txtRW.setText(String.format("%03d", rw));
+        txtRT.setText(String.format("%03d", rt));
+
         return true;
     }
 
     private void saveData() {
-        rtrw.setNamaDesa(txtKecamatan.getText().trim());
+        String namaDesa = (String) cmbDesa.getSelectedItem();
+        rtrw.setNamaDesa(namaDesa);
         rtrw.setRw(txtRW.getText().trim());
         rtrw.setRt(txtRT.getText().trim());
         rtrw.setNamaKetua(txtNamaKetua.getText().trim());
@@ -193,9 +250,10 @@ public class RTRWFormDialog extends JDialog {
         rtrw.setAlamat(txtAlamat.getText().trim());
         rtrw.setStatus(cmbStatus.getSelectedItem().toString());
         
-        // Set ID desa default jika belum ada
-        if (rtrw.getIdDesa() == 0) {
-            rtrw.setIdDesa(1); // Default ID desa, bisa disesuaikan
+        // Cari ID Desa berdasarkan nama
+        Desa d = desaDAO.getDesaByName(namaDesa);
+        if (d != null) {
+            rtrw.setIdDesa(d.getIdDesa());
         }
     }
 

@@ -5,23 +5,21 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
-public class dashboard_bupati extends JFrame {
+public class dashboard_guest extends JFrame {
     private String currentFullName; // Full Name untuk ditampilkan
     private JButton btnLogout;
     private JLabel lblUser;
     private JLabel lblWelcome;
 
     // PERBAIKAN: Constructor menerima 2 parameter (fullName dan username)
-    public dashboard_bupati(String fullName) {
-        this.currentFullName = fullName;
-
+    public dashboard_guest() {
         initComponents();
         setupFrame();
     }
 
     private void initComponents() {
         // PERBAIKAN: Tampilkan fullName di title
-        setTitle("Dashboard Bupati - " + currentFullName);
+        setTitle("Dashboard Guest - " + (currentFullName != null ? currentFullName : "Tamu"));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Color bgColor = new Color(245, 245, 245);
@@ -96,7 +94,7 @@ public class dashboard_bupati extends JFrame {
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
 
-        JLabel subtitleLabel = new JLabel("Dashboard Bupati");
+        JLabel subtitleLabel = new JLabel("Dashboard Pengguna Tamu");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         subtitleLabel.setForeground(new Color(200, 220, 250));
 
@@ -129,7 +127,7 @@ public class dashboard_bupati extends JFrame {
         lblUser.setForeground(Color.WHITE);
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lblRole = new JLabel("● Bupati");
+        JLabel lblRole = new JLabel("● Guest Account");
         lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblRole.setForeground(new Color(144, 238, 144));
         lblRole.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -239,8 +237,6 @@ public class dashboard_bupati extends JFrame {
         });
 
         // Add tabs with icons
-        tabbedPane.addTab("Ringkasan", new StatsPanel()); // New Executive Summary Tab
-
         CrudKecamatanPanel kecPanel = new CrudKecamatanPanel();
         kecPanel.setReadOnly(true);
 
@@ -256,7 +252,6 @@ public class dashboard_bupati extends JFrame {
         tabbedPane.addTab("Kecamatan", kecPanel);
         tabbedPane.addTab("Desa", desaPanel);
         tabbedPane.addTab("RT/RW", rtrwPanel);
-        // tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
         tabbedPane.addTab("Warga", wargaPanel);
 
         return tabbedPane;
@@ -266,14 +261,12 @@ public class dashboard_bupati extends JFrame {
     private String getTabIcon(int index) {
         switch (index) {
             case 0:
-                return "📊"; // Ringkasan
-            case 1:
                 return "🏙️"; // Kecamatan
-            case 2:
+            case 1:
                 return "🏡"; // Desa
-            case 3:
+            case 2:
                 return "🏘️"; // RT/RW
-            case 4:
+            case 3:
                 return "👥"; // Warga
             default:
                 return "📋";
