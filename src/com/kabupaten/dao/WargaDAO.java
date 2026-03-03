@@ -57,7 +57,34 @@ public class WargaDAO {
         return list;
     }
 
+    public boolean isDuplicateNik(String nik, Integer excludeIdWarga) {
+        String sql = "SELECT COUNT(*) FROM warga WHERE nik = ?";
+        if (excludeIdWarga != null) {
+            sql += " AND id_warga != ?";
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, nik);
+            if (excludeIdWarga != null) {
+                stmt.setInt(2, excludeIdWarga);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean addWarga(Warga w) {
+        if (isDuplicateNik(w.getNik(), null)) {
+            System.err.println("Gagal tambah: NIK " + w.getNik() + " sudah terdaftar.");
+            return false;
+        }
+
         String sql = "INSERT INTO warga (nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, id_desa) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, w.getNik());
@@ -75,6 +102,11 @@ public class WargaDAO {
     }
 
     public boolean updateWarga(Warga w) {
+        if (isDuplicateNik(w.getNik(), w.getIdWarga())) {
+            System.err.println("Gagal update: NIK " + w.getNik() + " sudah terdaftar pada data lain.");
+            return false;
+        }
+
         String sql = "UPDATE warga SET nik=?, nama_lengkap=?, jenis_kelamin=?, tempat_lahir=?, tanggal_lahir=?, alamat=?, id_desa=? WHERE id_warga=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, w.getNik());

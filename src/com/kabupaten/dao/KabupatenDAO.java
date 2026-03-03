@@ -11,23 +11,23 @@ import java.util.List;
  */
 public class KabupatenDAO {
     private Connection connection;
-    
+
     public KabupatenDAO() {
         this.connection = DatabaseConnection.getConnection();
     }
-    
+
     /**
      * Mengambil semua data kabupaten dengan join provinsi
      */
     public List<Kabupaten> getAllKabupaten() {
         List<Kabupaten> kabupatenList = new ArrayList<>();
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
-                    "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
-                    "ORDER BY k.nama_kabupaten";
-        
+                "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
+                "ORDER BY k.nama_kabupaten";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            
+                ResultSet rs = stmt.executeQuery()) {
+
             while (rs.next()) {
                 Kabupaten kabupaten = new Kabupaten();
                 kabupaten.setIdKabupaten(rs.getInt("id_kabupaten"));
@@ -46,30 +46,30 @@ public class KabupatenDAO {
                 kabupaten.setCreatedAt(rs.getTimestamp("created_at"));
                 kabupaten.setUpdatedAt(rs.getTimestamp("updated_at"));
                 // kabupaten.setNamaProvinsi(rs.getString("nama_provinsi"));
-                
+
                 kabupatenList.add(kabupaten);
             }
         } catch (SQLException e) {
             System.err.println("Error mengambil data kabupaten: " + e.getMessage());
         }
-        
+
         return kabupatenList;
     }
-    
+
     /**
      * Mencari kabupaten berdasarkan nama
      */
     public List<Kabupaten> searchKabupaten(String keyword) {
         List<Kabupaten> kabupatenList = new ArrayList<>();
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
-                    "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
-                    "WHERE k.nama_kabupaten LIKE ? OR k.kode_kabupaten LIKE ? " +
-                    "ORDER BY k.nama_kabupaten";
-        
+                "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
+                "WHERE k.nama_kabupaten LIKE ? OR k.kode_kabupaten LIKE ? " +
+                "ORDER BY k.nama_kabupaten";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, "%" + keyword + "%");
             stmt.setString(2, "%" + keyword + "%");
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Kabupaten kabupaten = mapResultSetToKabupaten(rs);
@@ -79,19 +79,54 @@ public class KabupatenDAO {
         } catch (SQLException e) {
             System.err.println("Error mencari kabupaten: " + e.getMessage());
         }
-        
+
         return kabupatenList;
     }
-    
+
+    /**
+     * Cek apakah nama kabupaten sudah ada
+     */
+    public boolean isDuplicateKabupaten(String namaKabupaten, Integer excludeId) {
+        String sql = "SELECT COUNT(*) FROM kabupaten WHERE nama_kabupaten = ?";
+
+        if (excludeId != null) {
+            sql += " AND id_kabupaten != ?";
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, namaKabupaten);
+
+            if (excludeId != null) {
+                stmt.setInt(2, excludeId);
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error cek duplikat Kabupaten: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     /**
      * Menambah kabupaten baru
      */
     public boolean addKabupaten(Kabupaten kabupaten) {
+        if (isDuplicateKabupaten(kabupaten.getNamaKabupaten(), null)) {
+            System.err.println("Data Kabupaten duplikat: " + kabupaten.getNamaKabupaten());
+            return false;
+        }
+
         String sql = "INSERT INTO kabupaten (id_provinsi, kode_kabupaten, nama_kabupaten, " +
-                    "ibukota, luas_wilayah, jumlah_penduduk, jumlah_kecamatan, jumlah_desa, " +
-                    ") " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+                "ibukota, luas_wilayah, jumlah_penduduk, jumlah_kecamatan, jumlah_desa, " +
+                ") " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             // stmt.setInt(1, kabupaten.getIdProvinsi());
             stmt.setString(2, kabupaten.getKodeKabupaten());
@@ -105,7 +140,7 @@ public class KabupatenDAO {
             // stmt.setString(10, kabupaten.getBatasSelatan());
             // stmt.setString(11, kabupaten.getBatasTimur());
             // stmt.setString(12, kabupaten.getBatasBarat());
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -113,15 +148,20 @@ public class KabupatenDAO {
             return false;
         }
     }
-    
+
     /**
      * Mengupdate data kabupaten
      */
     public boolean updateKabupaten(Kabupaten kabupaten) {
+        if (isDuplicateKabupaten(kabupaten.getNamaKabupaten(), kabupaten.getIdKabupaten())) {
+            System.err.println("Data Kabupaten duplikat: " + kabupaten.getNamaKabupaten());
+            return false;
+        }
+
         String sql = "UPDATE kabupaten SET id_provinsi=?, kode_kabupaten=?, nama_kabupaten=?, " +
-                    "ibukota=?, luas_wilayah=?, jumlah_penduduk=?, jumlah_kecamatan=?, jumlah_desa=?, " +
-                    "WHERE id_kabupaten=?";
-        
+                "ibukota=?, luas_wilayah=?, jumlah_penduduk=?, jumlah_kecamatan=?, jumlah_desa=?, " +
+                "WHERE id_kabupaten=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             // stmt.setInt(1, kabupaten.getIdProvinsi());
             stmt.setString(2, kabupaten.getKodeKabupaten());
@@ -136,7 +176,7 @@ public class KabupatenDAO {
             // stmt.setString(11, kabupaten.getBatasTimur());
             // stmt.setString(12, kabupaten.getBatasBarat());
             stmt.setInt(13, kabupaten.getIdKabupaten());
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
@@ -144,13 +184,13 @@ public class KabupatenDAO {
             return false;
         }
     }
-    
+
     /**
      * Menghapus kabupaten
      */
     public boolean deleteKabupaten(int idKabupaten) {
         String sql = "DELETE FROM kabupaten WHERE id_kabupaten=?";
-        
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idKabupaten);
             int rowsAffected = stmt.executeUpdate();
@@ -160,15 +200,15 @@ public class KabupatenDAO {
             return false;
         }
     }
-    
+
     /**
      * Mengambil kabupaten berdasarkan ID
      */
     public Kabupaten getKabupatenById(int idKabupaten) {
         String sql = "SELECT k.*, p.nama_provinsi FROM kabupaten k " +
-                    "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
-                    "WHERE k.id_kabupaten = ?";
-        
+                "JOIN provinsi p ON k.id_provinsi = p.id_provinsi " +
+                "WHERE k.id_kabupaten = ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, idKabupaten);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -179,10 +219,10 @@ public class KabupatenDAO {
         } catch (SQLException e) {
             System.err.println("Error mengambil kabupaten by ID: " + e.getMessage());
         }
-        
+
         return null;
     }
-    
+
     /**
      * Helper method untuk mapping ResultSet ke object Kabupaten
      */

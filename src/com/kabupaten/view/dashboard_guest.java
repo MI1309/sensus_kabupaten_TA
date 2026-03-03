@@ -33,15 +33,15 @@ public class dashboard_guest extends JFrame {
         // Header panel (REDESIGNED)
         JPanel headerPanel = createModernHeaderPanel();
 
-        // Tabbed pane (IMPROVED)
-        JTabbedPane tabbedPane = createModernTabbedPane();
+        // Filter Panel (NEW DYNAMIC UI)
+        GuestDataFilterPanel filterPanel = new GuestDataFilterPanel();
 
         // Footer panel (ENHANCED)
         JPanel footerPanel = createModernFooterPanel();
 
         // Rakit ke main panel
         mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        mainPanel.add(filterPanel, BorderLayout.CENTER);
         mainPanel.add(footerPanel, BorderLayout.SOUTH);
 
         add(mainPanel, BorderLayout.CENTER);
@@ -171,107 +171,7 @@ public class dashboard_guest extends JFrame {
         return headerPanel;
     }
 
-    // ============================================
-    // MODERN TABBED PANE (IMPROVED)
-    // ============================================
-    private JTabbedPane createModernTabbedPane() {
-        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.LEFT);
-
-        // Modern look
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tabbedPane.setBackground(new Color(245, 245, 245));
-        tabbedPane.setForeground(new Color(33, 37, 41));
-
-        // Custom UI
-        tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-            @Override
-            protected void paintTabBackground(Graphics g, int tabPlacement,
-                    int tabIndex, int x, int y, int w, int h, boolean isSelected) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                if (isSelected) {
-                    // Selected tab - gradient blue
-                    GradientPaint gp = new GradientPaint(x, y, new Color(39, 82, 139), x, y + h,
-                            new Color(74, 144, 226));
-                    g2.setPaint(gp);
-                } else {
-                    // Unselected tab - light gray
-                    g2.setColor(new Color(230, 235, 240));
-                }
-                g2.fillRoundRect(x + 2, y + 2, w - 4, h - 4, 8, 8);
-            }
-
-            @Override
-            protected void paintText(Graphics g, int tabPlacement, Font font,
-                    FontMetrics metrics, int tabIndex,
-                    String title, Rectangle textRect,
-                    boolean isSelected) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-                if (isSelected) {
-                    g2.setFont(new Font("Segoe UI Emoji", Font.BOLD, 14));
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
-                    g2.setColor(new Color(73, 80, 87));
-                }
-
-                // Add icon before text
-                String icon = getTabIcon(tabIndex);
-                String fullText = icon + " " + title;
-
-                g2.drawString(fullText, textRect.x - 5, textRect.y + metrics.getAscent());
-            }
-
-            @Override
-            protected int calculateTabWidth(int tabPlacement, int tabIndex, FontMetrics metrics) {
-                return 180; // Fixed width for consistency
-            }
-
-            @Override
-            protected int calculateTabHeight(int tabPlacement, int tabIndex, int fontHeight) {
-                return 50; // Taller tabs
-            }
-        });
-
-        // Add tabs with icons
-        CrudKecamatanPanel kecPanel = new CrudKecamatanPanel();
-        kecPanel.setReadOnly(true);
-
-        CrudDesaPanel desaPanel = new CrudDesaPanel();
-        desaPanel.setReadOnly(true);
-
-        CrudRTRWPanel rtrwPanel = new CrudRTRWPanel();
-        rtrwPanel.setReadOnly(true);
-
-        CrudWargaPanel wargaPanel = new CrudWargaPanel();
-        wargaPanel.setReadOnly(true);
-
-        tabbedPane.addTab("Kecamatan", kecPanel);
-        tabbedPane.addTab("Desa", desaPanel);
-        tabbedPane.addTab("RT/RW", rtrwPanel);
-        tabbedPane.addTab("Warga", wargaPanel);
-
-        return tabbedPane;
-    }
-
-    // Helper method for tab icons
-    private String getTabIcon(int index) {
-        switch (index) {
-            case 0:
-                return "🏙️"; // Kecamatan
-            case 1:
-                return "🏡"; // Desa
-            case 2:
-                return "🏘️"; // RT/RW
-            case 3:
-                return "👥"; // Warga
-            default:
-                return "📋";
-        }
-    }
+    // Tab logic removed as it's replaced by GuestDataFilterPanel
 
     // ============================================
     // MODERN FOOTER PANEL (ENHANCED)

@@ -247,7 +247,9 @@ public class CrudWargaPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Berhasil simpan data!");
                     refreshTable();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Gagal simpan data!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                            "Gagal simpan data!\nKemungkinan NIK yang dimasukkan sudah terdaftar pada data lain.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error",

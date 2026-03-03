@@ -1,4 +1,4 @@
-package com.kabupaten.view;
+package com.kabupaten.Dialog;
 
 import com.kabupaten.model.Desa;
 import com.kabupaten.dao.KecamatanDAO;
