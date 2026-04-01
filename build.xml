@@ -55,38 +55,39 @@
     </target>
     
     <!-- Target: compile - Kompilasi source code -->
-    <target name="compile" depends="init" description="Kompilasi source code">
-        <echo message="Mengkompilasi source code..."/>
+<!-- Target: compile - Kompilasi source code -->
+<target name="compile" depends="init" description="Kompilasi source code">
+    <echo message="Mengkompilasi source code..."/>
 
-        <!-- file gambar -->
-        <!-- file gambar & resource lain -->
-        <copy todir="${classes.dir}">
-            <fileset dir="${src.dir}">
-                <include name="**/*.jpg"/>
-                <include name="**/*.png"/>
-                <include name="**/*.gif"/>
-                <include name="**/*.properties"/>
-            </fileset>
-        </copy>
+    <!-- Copy resource files ke classes dir -->
+    <copy todir="${classes.dir}">
+        <fileset dir="${src.dir}">
+            <include name="**/*.jpg"/>
+            <include name="**/*.png"/>
+            <include name="**/*.gif"/>
+            <include name="**/*.properties"/>
+        </fileset>
+    </copy>
 
-        <copy todir="${build.classes.dir}">
-            <fileset dir="src" includes="**/*.jpg, **/*.png, **/*.gif"/>
-        </copy>
+    <!-- Verifikasi copy berhasil -->
+    <echo message="Mengecek apakah logo ter-copy..."/>
+    <available file="${classes.dir}/com/kabupaten/img/logo.jpg" 
+               property="logo.exists"/>
+    <echo message="Logo ada di classes dir: ${logo.exists}"/>
 
-        
-        <javac srcdir="${src.dir}" 
-               destdir="${classes.dir}"
-               classpathref="classpath"
-               includeantruntime="false"
-               encoding="UTF-8"
-               source="8"
-               target="8"
-               debug="true">
-            <compilerarg value="-Xlint:unchecked"/>
-        </javac>
-        
-        <echo message="Kompilasi selesai!"/>
-    </target>
+    <javac srcdir="${src.dir}" 
+           destdir="${classes.dir}"
+           classpathref="classpath"
+           includeantruntime="false"
+           encoding="UTF-8"
+           source="8"
+           target="8"
+           debug="true">
+        <compilerarg value="-Xlint:unchecked"/>
+    </javac>
+    
+    <echo message="Kompilasi selesai!"/>
+</target>
     
     <!-- Target: jar - Membuat file JAR -->
     <target name="jar" depends="compile" description="Membuat file JAR aplikasi">

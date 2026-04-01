@@ -1,7 +1,9 @@
 package com.kabupaten.main;
 
 import com.kabupaten.database.DatabaseConnection;
+import com.kabupaten.view.BannerFrame;
 import com.kabupaten.view.LoginFrame;
+import com.kabupaten.view.LoadingScreen;
 import com.kabupaten.view.dashboard_guest;
 
 import javax.swing.*;

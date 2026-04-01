@@ -225,7 +225,7 @@ public class CrudDesaPanel extends JPanel {
         }
     }
 
-    pub void refreshTable() {
+    public void refreshTable() {
         tableModel.setRowCount(0);
         try {
             List<Desa> desaList = desaDAO.getAllDesa();

@@ -301,6 +301,7 @@ public class CrudKecamatanPanel extends JPanel {
                     refreshTable();
                     txtSearch.setText("");
                     notifyDataChanged(); // Notify listeners
+                    
                 } else {
                     JOptionPane.showMessageDialog(this,
                             "Gagal menambahkan data!\nNama kecamatan mungkin sudah ada.",

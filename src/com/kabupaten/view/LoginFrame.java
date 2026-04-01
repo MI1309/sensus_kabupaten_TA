@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import javax.imageio.ImageIO;
+import com.kabupaten.utils.SecurityUtils;
+import com.kabupaten.view.ForgotPasswordFrame;
 
 /**
  * Frame untuk login aplikasi dengan validasi role
@@ -19,6 +21,7 @@ public class LoginFrame extends JFrame {
     private JComboBox<String> cmbRole;
     private JButton btnLogin;
     private JButton btnExit;
+    private JButton btnForgotPassword;
     private String userRole;
     private String fullName;
 
@@ -359,7 +362,30 @@ public class LoginFrame extends JFrame {
         buttonPanel.add(btnExit);
 
         formPanel.add(buttonPanel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        formPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+        // Forgot password link
+        btnForgotPassword = new JButton("Lupa Password?");
+        btnForgotPassword.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btnForgotPassword.setForeground(ACCENT_COLOR);
+        btnForgotPassword.setBorder(null);
+        btnForgotPassword.setContentAreaFilled(false);
+        btnForgotPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnForgotPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        btnForgotPassword.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btnForgotPassword.setText("<html><u>Lupa Password?</u></html>");
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btnForgotPassword.setText("Lupa Password?");
+            }
+        });
+
+        formPanel.add(btnForgotPassword);
+        formPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
         // Footer
         JLabel footerLabel = new JLabel("Sistem Pendataan Kab. Sidoarjo v1.0");
@@ -410,6 +436,10 @@ public class LoginFrame extends JFrame {
     private void setupActionListeners() {
         btnLogin.addActionListener(e -> performLogin());
         btnExit.addActionListener(e -> exit());
+        btnForgotPassword.addActionListener(e -> {
+            this.dispose();
+            new ForgotPasswordFrame().setVisible(true);
+        });
         txtUsername.addActionListener(e -> txtPassword.requestFocus());
         txtPassword.addActionListener(e -> performLogin());
 
@@ -425,6 +455,7 @@ public class LoginFrame extends JFrame {
         usernamePanel.setVisible(!isGuest);
         lblPassword.setVisible(!isGuest);
         passwordPanel.setVisible(!isGuest);
+        btnForgotPassword.setVisible(!isGuest);
 
         if (isGuest) {
             txtUsername.setText("");
@@ -486,7 +517,7 @@ public class LoginFrame extends JFrame {
     }
 
     private boolean validateLogin(String username, String password, String selectedRole) {
-        String hashedPassword = hashPassword(password);
+        String hashedPassword = SecurityUtils.hashPassword(password);
         String sql = "SELECT role, nama_lengkap FROM users WHERE username = ? AND password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -516,21 +547,6 @@ public class LoginFrame extends JFrame {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
             return false;
-        }
-    }
-
-    private String hashPassword(String plain) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(plain.getBytes("UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hash) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return plain;
         }
     }
 

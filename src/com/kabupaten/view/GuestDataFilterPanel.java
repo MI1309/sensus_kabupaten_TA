@@ -30,6 +30,7 @@ public class GuestDataFilterPanel extends JPanel {
     private JTable tableRTRW;
     private DefaultTableModel tableModelRTRW;
     private JLabel lblTotalRTRW;
+    private JTextField txtSearch;
 
     public GuestDataFilterPanel() {
         setLayout(new BorderLayout());
@@ -55,12 +56,18 @@ public class GuestDataFilterPanel extends JPanel {
         filterPanel.add(new JLabel("RT/RW:"));
         filterPanel.add(cmbRTRW);
 
+        filterPanel.add(new JLabel("Cari nama warga : "));
+        txtSearch = new JTextField();
+        txtSearch.setPreferredSize(new Dimension(200, 30));
+        filterPanel.add(txtSearch);
+
         JButton btnReset = new JButton("Reset Filter");
         btnReset.setBackground(new Color(108, 117, 125));
         btnReset.setForeground(Color.WHITE);
         btnReset.setFocusPainted(false);
         btnReset.addActionListener(e -> {
             cmbKecamatan.setSelectedIndex(0);
+            txtSearch.setText("");
         });
         filterPanel.add(btnReset);
 
@@ -104,6 +111,7 @@ public class GuestDataFilterPanel extends JPanel {
         panelWarga.add(footerWarga, BorderLayout.SOUTH);
 
         tabbedPane.addTab("👥 Data Warga", panelWarga);
+        tabbedPane.setFont(new Font("Arial Emoji", Font.PLAIN, 14));
 
         // --- Tab 2: RT/RW Table ---
         tableModelRTRW = new DefaultTableModel(
@@ -183,6 +191,12 @@ public class GuestDataFilterPanel extends JPanel {
                 refreshTable();
             }
         });
+
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { refreshTable(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { refreshTable(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { refreshTable(); }
+        });
     }
 
     private void loadKecamatanCombo() {
@@ -229,6 +243,7 @@ public class GuestDataFilterPanel extends JPanel {
         KecamatanItem selKec = (KecamatanItem) cmbKecamatan.getSelectedItem();
         DesaItem selDesa = (DesaItem) cmbDesa.getSelectedItem();
         RTRWItem selRTRW = (RTRWItem) cmbRTRW.getSelectedItem();
+        String searchText = txtSearch.getText().toLowerCase().trim();
 
         tableModelWarga.setRowCount(0);
         tableModelRTRW.setRowCount(0);
@@ -258,7 +273,17 @@ public class GuestDataFilterPanel extends JPanel {
                     matchRTRW = false;
             }
 
-            if (matchKecamatan && matchDesa && matchRTRW) {
+            // Live Search Filter for Warga
+            boolean matchSearch = true;
+            if (!searchText.isEmpty()) {
+                String nik = w.getNik() != null ? w.getNik().toLowerCase() : "";
+                String nama = w.getNamaLengkap() != null ? w.getNamaLengkap().toLowerCase() : "";
+                if (!nik.contains(searchText) && !nama.contains(searchText)) {
+                    matchSearch = false;
+                }
+            }
+
+            if (matchKecamatan && matchDesa && matchRTRW && matchSearch) {
                 tableModelWarga.addRow(new Object[] {
                         (countWarga + 1), w.getNik(), w.getNamaLengkap(), w.getJenisKelamin(), w.getNamaKecamatan(),
                         w.getNamaDesa(), w.getAlamat()
@@ -295,7 +320,16 @@ public class GuestDataFilterPanel extends JPanel {
                 matchSpecificRTRW = (r.getIdRtrw() == selRTRW.id);
             }
 
-            if (matchKecamatan && matchDesa && matchSpecificRTRW) {
+            // Live Search Filter for RT/RW
+            boolean matchSearch = true;
+            if (!searchText.isEmpty()) {
+                String ketua = r.getNamaKetua() != null ? r.getNamaKetua().toLowerCase() : "";
+                if (!ketua.contains(searchText)) {
+                    matchSearch = false;
+                }
+            }
+
+            if (matchKecamatan && matchDesa && matchSpecificRTRW && matchSearch) {
                 String namaKec = desaToKecMap.getOrDefault(r.getNamaDesa(), "-");
 
                 tableModelRTRW.addRow(new Object[] {

@@ -62,7 +62,7 @@ public class DesaFormDialog extends JDialog {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.NONE;
-        formPanel.add(new JLabel("Nama Desa:"), gbc);
+        formPanel.add(new JLabel("Nama Desa / Kelurahan:"), gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         txtNamaDesa = new JTextField(20);
