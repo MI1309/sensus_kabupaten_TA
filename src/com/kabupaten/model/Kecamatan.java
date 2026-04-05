@@ -17,6 +17,7 @@ public class Kecamatan {
     private int jumlahKelurahan;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String fotoUrl;
     
     // Default constructor
     public Kecamatan() {
@@ -55,6 +56,9 @@ public class Kecamatan {
     public int getIdKecamatan() {
         return idKecamatan;
     }
+
+    public String getFotoUrl() { return fotoUrl; }
+    public void setFotoUrl(String fotoUrl) { this.fotoUrl = fotoUrl; }
 
     public void setIdKecamatan(int idKecamatan) {
         this.idKecamatan = idKecamatan;

@@ -13,7 +13,7 @@ import com.kabupaten.view.ForgotPasswordFrame;
 
 /**
  * Frame untuk login aplikasi dengan validasi role
- * Guest bisa langsung login tanpa username/password
+ * Hanya Admin dan Bupati yang dapat login (Guest dihapus)
  */
 public class LoginFrame extends JFrame {
     private JTextField txtUsername;
@@ -22,6 +22,7 @@ public class LoginFrame extends JFrame {
     private JButton btnLogin;
     private JButton btnExit;
     private JButton btnForgotPassword;
+    private JButton btnBack; // Tombol kembali ke BannerFrame
     private String userRole;
     private String fullName;
 
@@ -36,6 +37,7 @@ public class LoginFrame extends JFrame {
     private static final Color SECONDARY_COLOR = new Color(42, 82, 152); // Biru sedang
     private static final Color ACCENT_COLOR = new Color(79, 172, 254); // Biru muda/cyan
     private static final Color CREAM_COLOR = new Color(255, 251, 245); // Cream untuk background
+    private static final Color GRAY_COLOR = new Color(108, 117, 125); // Abu-abu untuk tombol kembali
 
     public LoginFrame() {
         initComponents();
@@ -240,14 +242,12 @@ public class LoginFrame extends JFrame {
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setOpaque(false);
         formPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
-        // Removed fixed preferred size to allow vertical centering by GridBagLayout
-        // formPanel.setPreferredSize(new Dimension(480, 600));
 
         // Header section
         JLabel welcomeLabel = new JLabel("Selamat Datang");
         welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         welcomeLabel.setForeground(PRIMARY_COLOR);
-        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(welcomeLabel);
 
         formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -255,7 +255,7 @@ public class LoginFrame extends JFrame {
         JLabel descLabel = new JLabel("Silakan login untuk mengakses sistem");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         descLabel.setForeground(new Color(100, 100, 120));
-        descLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+        descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(descLabel);
 
         formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -264,23 +264,18 @@ public class LoginFrame extends JFrame {
         lblUsername = new JLabel("Username");
         lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblUsername.setForeground(PRIMARY_COLOR);
-        lblUsername.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
-        // Create a wrapper for the label to be left aligned relative to the text field
-        // if desired?
-        // No, user likely wants everything centered.
-        // But usually labels are above fields. If centered, label connects to field.
+        lblUsername.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(lblUsername);
 
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Reduced gap
+        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         usernamePanel = new JPanel(new BorderLayout());
         usernamePanel.setBackground(Color.WHITE);
         usernamePanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
-                BorderFactory.createEmptyBorder(10, 15, 10, 15) // Slightly smaller padding
-        ));
-        usernamePanel.setMaximumSize(new Dimension(380, 45)); // Slightly smaller height
-        usernamePanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
+        usernamePanel.setMaximumSize(new Dimension(380, 48));
+        usernamePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         txtUsername = new JTextField(20);
         txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -295,18 +290,18 @@ public class LoginFrame extends JFrame {
         lblPassword = new JLabel("Password");
         lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblPassword.setForeground(PRIMARY_COLOR);
-        lblPassword.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+        lblPassword.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(lblPassword);
 
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Reduced gap
+        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         passwordPanel = new JPanel(new BorderLayout());
         passwordPanel.setBackground(Color.WHITE);
         passwordPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
-                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
-        passwordPanel.setMaximumSize(new Dimension(380, 45));
-        passwordPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
+        passwordPanel.setMaximumSize(new Dimension(380, 48));
+        passwordPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         txtPassword = new JPasswordField(20);
         txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -318,24 +313,25 @@ public class LoginFrame extends JFrame {
         formPanel.add(passwordPanel);
         formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Role selection
+        // Role selection - Hanya Admin dan Bupati
         JLabel lblRole = new JLabel("Login Sebagai");
         lblRole.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblRole.setForeground(PRIMARY_COLOR);
-        lblRole.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+        lblRole.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(lblRole);
 
-        formPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Reduced gap
+        formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 
         JPanel comboPanel = new JPanel(new BorderLayout());
         comboPanel.setBackground(Color.WHITE);
         comboPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 210, 210), 1),
-                BorderFactory.createEmptyBorder(8, 15, 8, 15)));
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
         comboPanel.setMaximumSize(new Dimension(380, 45));
-        comboPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Changed to CENTER
+        comboPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        String[] roles = { "Admin", "Guest", "Bupati" };
+        // Hanya Admin dan Bupati
+        String[] roles = { "Admin", "Bupati" };
         cmbRole = new JComboBox<>(roles);
         cmbRole.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cmbRole.setBackground(Color.WHITE);
@@ -344,25 +340,25 @@ public class LoginFrame extends JFrame {
 
         comboPanel.add(cmbRole, BorderLayout.CENTER);
         formPanel.add(comboPanel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        formPanel.add(Box.createRigidArea(new Dimension(0, 35)));
 
-        // Button panel
+        // Button panel dengan 3 tombol: Kembali, MASUK, Kembali ke Dashboard Guest
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 12, 0));
         buttonPanel.setOpaque(false);
-        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Already CENTER
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         btnLogin = createStyledButton("MASUK", ACCENT_COLOR);
-        btnExit = createStyledButton("KELUAR", new Color(120, 120, 120));
+        btnExit = createGuestButton();
 
-        btnLogin.setPreferredSize(new Dimension(150, 45)); // Matched height
-        btnExit.setPreferredSize(new Dimension(150, 45));
+        btnLogin.setPreferredSize(new Dimension(140, 42));
+        btnExit.setPreferredSize(new Dimension(140, 42));
 
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnExit);
 
         formPanel.add(buttonPanel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // Forgot password link
         btnForgotPassword = new JButton("Lupa Password?");
@@ -391,7 +387,7 @@ public class LoginFrame extends JFrame {
         JLabel footerLabel = new JLabel("Sistem Pendataan Kab. Sidoarjo v1.0");
         footerLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         footerLabel.setForeground(new Color(150, 150, 150));
-        footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Already CENTER
+        footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(footerLabel);
 
         formContainer.add(formPanel);
@@ -402,14 +398,59 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
+    private JButton createGuestButton() {
+        JButton guestButton = new JButton("Kembali");
+        guestButton.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        guestButton.setBackground(new Color(46, 125, 50)); // Hijau
+        guestButton.setForeground(Color.WHITE);
+        guestButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(35, 100, 40), 1),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        guestButton.setFocusPainted(false);
+        guestButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        guestButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                guestButton.setBackground(new Color(60, 150, 70));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                guestButton.setBackground(new Color(46, 125, 50));
+            }
+            
+            @Override
+            public void mousePressed(MouseEvent e) {
+                guestButton.setBackground(new Color(35, 100, 40));
+            }
+        });
+        
+        guestButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Apakah Anda ingin kembali ke Portal Informasi Publik?",
+                    "Konfirmasi",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                this.dispose();
+                SwingUtilities.invokeLater(() -> new dashboard_guest().setVisible(true));
+            }
+        });
+        
+        return guestButton;
+    }
+
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
         button.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(bgColor.darker().darker(), 1),
-                BorderFactory.createEmptyBorder(12, 25, 12, 25)));
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -435,48 +476,17 @@ public class LoginFrame extends JFrame {
 
     private void setupActionListeners() {
         btnLogin.addActionListener(e -> performLogin());
-        btnExit.addActionListener(e -> exit());
         btnForgotPassword.addActionListener(e -> {
             this.dispose();
             new ForgotPasswordFrame().setVisible(true);
         });
         txtUsername.addActionListener(e -> txtPassword.requestFocus());
         txtPassword.addActionListener(e -> performLogin());
-
-        cmbRole.addActionListener(e -> toggleCredentialFields());
-    }
-
-    // Method untuk show/hide username dan password field
-    private void toggleCredentialFields() {
-        String selectedRole = (String) cmbRole.getSelectedItem();
-        boolean isGuest = "Guest".equals(selectedRole);
-
-        lblUsername.setVisible(!isGuest);
-        usernamePanel.setVisible(!isGuest);
-        lblPassword.setVisible(!isGuest);
-        passwordPanel.setVisible(!isGuest);
-        btnForgotPassword.setVisible(!isGuest);
-
-        if (isGuest) {
-            txtUsername.setText("");
-            txtPassword.setText("");
-        }
-
-        revalidate();
-        repaint();
     }
 
     private void performLogin() {
         String selectedRole = ((String) cmbRole.getSelectedItem()).toLowerCase();
 
-        // Guest langsung login tanpa validasi
-        if ("guest".equalsIgnoreCase(selectedRole)) {
-            this.dispose();
-            SwingUtilities.invokeLater(() -> new dashboard_guest().setVisible(true));
-            return;
-        }
-
-        // Validasi Admin dan Bupati
         String username = txtUsername.getText().trim();
         String password = new String(txtPassword.getPassword());
 
@@ -550,17 +560,6 @@ public class LoginFrame extends JFrame {
         }
     }
 
-    private void exit() {
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Apakah Anda yakin ingin Keluar?",
-                "Konfirmasi Keluar",
-                JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            System.exit(0);
-        }
-    }
-
     private void setupFrame() {
         pack();
         setLocationRelativeTo(null);
@@ -569,7 +568,6 @@ public class LoginFrame extends JFrame {
 
         SwingUtilities.invokeLater(() -> {
             txtUsername.requestFocus();
-            toggleCredentialFields(); // Initialize visibility
         });
     }
 }

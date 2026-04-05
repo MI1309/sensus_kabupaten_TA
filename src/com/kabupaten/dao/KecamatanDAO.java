@@ -121,8 +121,9 @@ public class KecamatanDAO {
             return false;
         }
 
+        // UPDATE SQL: Tambahkan foto_url
         String sql = "INSERT INTO kecamatan (nama_kecamatan, alamat_kantor, nama_kepala, " +
-                "alamat_rumah_kepala, no_hp) VALUES (?, ?, ?, ?, ?)";
+                "alamat_rumah_kepala, no_hp, foto_url) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, kecamatan.getNamaKecamatan());
@@ -130,6 +131,7 @@ public class KecamatanDAO {
             stmt.setString(3, kecamatan.getNamaKepala());
             stmt.setString(4, kecamatan.getAlamatRumahKepala());
             stmt.setString(5, kecamatan.getNoHp());
+            stmt.setString(6, kecamatan.getFotoUrl()); // TAMBAHKAN INI
 
             int rowsAffected = stmt.executeUpdate();
 
@@ -162,8 +164,9 @@ public class KecamatanDAO {
             return false;
         }
 
+        // UPDATE SQL: Tambahkan foto_url
         String sql = "UPDATE kecamatan SET nama_kecamatan=?, alamat_kantor=?, nama_kepala=?, " +
-                "alamat_rumah_kepala=?, no_hp=? WHERE id_kecamatan=?";
+                "alamat_rumah_kepala=?, no_hp=?, foto_url=? WHERE id_kecamatan=?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, kecamatan.getNamaKecamatan());
@@ -171,7 +174,8 @@ public class KecamatanDAO {
             stmt.setString(3, kecamatan.getNamaKepala());
             stmt.setString(4, kecamatan.getAlamatRumahKepala());
             stmt.setString(5, kecamatan.getNoHp());
-            stmt.setInt(6, kecamatan.getIdKecamatan());
+            stmt.setString(6, kecamatan.getFotoUrl()); // TAMBAHKAN INI
+            stmt.setInt(7, kecamatan.getIdKecamatan());
 
             int rowsAffected = stmt.executeUpdate();
 
@@ -352,6 +356,7 @@ public class KecamatanDAO {
         kecamatan.setNamaKepala(rs.getString("nama_kepala"));
         kecamatan.setAlamatRumahKepala(rs.getString("alamat_rumah_kepala"));
         kecamatan.setNoHp(rs.getString("no_hp"));
+        kecamatan.setFotoUrl(rs.getString("foto_url")); // TAMBAHKAN INI
         kecamatan.setCreatedAt(rs.getTimestamp("created_at"));
         kecamatan.setUpdatedAt(rs.getTimestamp("updated_at"));
 

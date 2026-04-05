@@ -13,6 +13,7 @@ public class dashboard_admin extends JFrame {
     private JLabel lblWelcome;
     private CrudKecamatanPanel kecamatanPanel;
     private CrudDesaPanel desaPanel;
+    private CrudFasilitas fasilitasPanel; // Tambahan panel fasilitas
 
     // PERBAIKAN: Constructor menerima 2 parameter (fullName dan username)
     public dashboard_admin(String fullName) {
@@ -23,12 +24,14 @@ public class dashboard_admin extends JFrame {
         // Saat inisialisasi panel
         kecamatanPanel = new CrudKecamatanPanel();
         desaPanel = new CrudDesaPanel();
+        fasilitasPanel = new CrudFasilitas(); // Inisialisasi panel fasilitas
 
         // MENJADI INI (Anonymous Inner Class - kompatibel semua versi Java):
         kecamatanPanel.addDataChangeListener(new DataChangeListener() {
             @Override
             public void onDataChanged() {
                 desaPanel.refreshData();
+                fasilitasPanel.refreshData(); // Refresh fasilitas juga
             }
         });
 
@@ -36,8 +39,19 @@ public class dashboard_admin extends JFrame {
             @Override
             public void onDataChanged() {
                 kecamatanPanel.refreshData();
+                fasilitasPanel.refreshData(); // Refresh fasilitas juga
             }
         });
+        
+        // Tambahkan listener untuk fasilitas
+        fasilitasPanel.addDataChangeListener(new DataChangeListener() {
+            @Override
+            public void onDataChanged() {
+                kecamatanPanel.refreshData();
+                desaPanel.refreshData();
+            }
+        });
+        
         initComponents();
         setupFrame();
     }
@@ -267,9 +281,10 @@ public class dashboard_admin extends JFrame {
 
         // Add tabs with icons
         tabbedPane.addTab("Kecamatan", kecamatanPanel);
-        tabbedPane.addTab("Desa", desaPanel);
+        tabbedPane.addTab("Desa / Kelurahan", desaPanel);
         tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
         tabbedPane.addTab("Warga", new CrudWargaPanel());
+        tabbedPane.addTab("Fasilitas", fasilitasPanel); // Tab Fasilitas ditambahkan
 
         return tabbedPane;
     }
@@ -282,8 +297,10 @@ public class dashboard_admin extends JFrame {
             case 1:
                 return "🏡"; // Desa
             case 2:
-                return "🏘️"; // RT/RW
+                return "🏥"; // Fasilitas (icon rumah sakit/gedung)
             case 3:
+                return "🏘️"; // RT/RW
+            case 4:
                 return "👥"; // Warga
             default:
                 return "📋";

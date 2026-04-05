@@ -225,7 +225,7 @@ public class CrudDesaPanel extends JPanel {
         }
     }
 
-    pub void refreshTable() {
+    public void refreshTable() {
         tableModel.setRowCount(0);
         try {
             List<Desa> desaList = desaDAO.getAllDesa();
@@ -474,75 +474,80 @@ public class CrudDesaPanel extends JPanel {
     }
 
     private void showDetail() {
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Silakan pilih data untuk melihat detail!",
-                    "Peringatan",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int idDesa = (int) table.getValueAt(row, 0);
-        Desa desa = desaDAO.getDesaById(idDesa);
-
-        if (desa != null) {
-            // Ambil daftar RT/RW
-            List<RTRW> rtrwList = rtrwDAO.getRTRWByDesaName(desa.getNamaDesa());
-            StringBuilder listRtrw = new StringBuilder("\n=== DAFTAR RT/RW ===\n");
-
-            if (rtrwList.isEmpty()) {
-                listRtrw.append("(Belum ada data)\n");
-            } else {
-                for (int i = 0; i < rtrwList.size(); i++) {
-                    RTRW r = rtrwList.get(i);
-                    listRtrw.append(String.format("%d. RT %s / RW %s (Ketua: %s)\n",
-                            (i + 1), r.getRt(), r.getRw(),
-                            r.getNamaKetua() != null ? r.getNamaKetua() : "-"));
-                }
-            }
-
-            String detail = String.format(
-                    "========== DETAIL DATA DESA ==========\n\n" +
-                            "ID Desa           : %d\n" +
-                            "Kecamatan         : %s\n" +
-                            "Nama Desa         : %s\n" +
-                            "Jenis             : %s\n" +
-                            "Alamat Kantor     : %s\n" +
-                            "Nama Kepala       : %s\n" +
-                            "Alamat Rumah      : %s\n" +
-                            "No HP             : %s\n\n" +
-                            "Dibuat pada       : %s\n" +
-                            "Terakhir diupdate : %s\n" +
-                            "%s",
-                    desa.getIdDesa(),
-                    desa.getNamaKecamatan() != null ? desa.getNamaKecamatan() : "-",
-                    desa.getNamaDesa() != null ? desa.getNamaDesa() : "-",
-                    desa.getJenis() != null ? desa.getJenis() : "-",
-                    desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "-",
-                    desa.getNamaKepala() != null ? desa.getNamaKepala() : "-",
-                    desa.getAlamatRumahKepala() != null ? desa.getAlamatRumahKepala() : "-",
-                    desa.getNoHp() != null ? desa.getNoHp() : "-",
-                    desa.getCreatedAt() != null ? desa.getCreatedAt() : "-",
-                    desa.getUpdatedAt() != null ? desa.getUpdatedAt() : "-",
-                    listRtrw.toString());
-
-            JTextArea textArea = new JTextArea(detail);
-            textArea.setEditable(false);
-            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(550, 450));
-
-            JOptionPane.showMessageDialog(this,
-                    scrollPane,
-                    "Detail Data Desa - " + desa.getNamaDesa(),
-                    JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                    "Data tidak ditemukan!",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+    int row = table.getSelectedRow();
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this,
+                "Silakan pilih data untuk melihat detail!",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+        return;
     }
+
+    int idDesa = (int) table.getValueAt(row, 0);
+    Desa desa = desaDAO.getDesaById(idDesa);
+
+    if (desa != null) {
+        // ← TAMBAHKAN INI: tentukan label berdasarkan jenis
+        boolean isKelurahan = "KELURAHAN".equals(desa.getJenis());
+        String labelKepala  = isKelurahan ? "Nama Lurah        " : "Nama Kepala Desa  ";
+        String labelAlamat  = isKelurahan ? "Alamat Rumah Lurah" : "Alamat Rumah Kep. ";
+
+        // Ambil daftar RT/RW
+        List<RTRW> rtrwList = rtrwDAO.getRTRWByDesaName(desa.getNamaDesa());
+        StringBuilder listRtrw = new StringBuilder("\n=== DAFTAR RT/RW ===\n");
+
+        if (rtrwList.isEmpty()) {
+            listRtrw.append("(Belum ada data)\n");
+        } else {
+            for (int i = 0; i < rtrwList.size(); i++) {
+                RTRW r = rtrwList.get(i);
+                listRtrw.append(String.format("%d. RT %s / RW %s (Ketua: %s)\n",
+                        (i + 1), r.getRt(), r.getRw(),
+                        r.getNamaKetua() != null ? r.getNamaKetua() : "-"));
+            }
+        }
+
+        String detail = String.format(
+                "========== DETAIL DATA DESA ==========\n\n" +
+                "ID Desa           : %d\n" +
+                "Kecamatan         : %s\n" +
+                "Nama Desa         : %s\n" +
+                "Jenis             : %s\n" +
+                "Alamat Kantor     : %s\n" +
+                "%s : %s\n" +          // ← label kepala dinamis
+                "%s : %s\n" +          // ← label alamat dinamis
+                "No HP             : %s\n\n" +
+                "Dibuat pada       : %s\n" +
+                "Terakhir diupdate : %s\n" +
+                "%s",
+                desa.getIdDesa(),
+                desa.getNamaKecamatan() != null ? desa.getNamaKecamatan() : "-",
+                desa.getNamaDesa()      != null ? desa.getNamaDesa()      : "-",
+                desa.getJenis()         != null ? desa.getJenis()         : "-",
+                desa.getAlamatKantor()  != null ? desa.getAlamatKantor()  : "-",
+                labelKepala, desa.getNamaKepala()         != null ? desa.getNamaKepala()         : "-",  // ← dinamis
+                labelAlamat, desa.getAlamatRumahKepala()  != null ? desa.getAlamatRumahKepala()  : "-",  // ← dinamis
+                desa.getNoHp()          != null ? desa.getNoHp()          : "-",
+                desa.getCreatedAt()     != null ? desa.getCreatedAt()     : "-",
+                desa.getUpdatedAt()     != null ? desa.getUpdatedAt()     : "-",
+                listRtrw.toString());
+
+        JTextArea textArea = new JTextArea(detail);
+        textArea.setEditable(false);
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(550, 450));
+
+        JOptionPane.showMessageDialog(this,
+                scrollPane,
+                "Detail Data Desa - " + desa.getNamaDesa(),
+                JOptionPane.INFORMATION_MESSAGE);
+    } else {
+        JOptionPane.showMessageDialog(this,
+                "Data tidak ditemukan!",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+}
 }

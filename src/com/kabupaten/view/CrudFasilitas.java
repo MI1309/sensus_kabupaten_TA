@@ -1,65 +1,76 @@
 package com.kabupaten.view;
 
-import com.kabupaten.model.Desa;
-import com.kabupaten.model.Kecamatan;
-import com.kabupaten.model.RTRW;
-import com.kabupaten.dao.DesaDAO;
-import com.kabupaten.dao.KecamatanDAO;
-import com.kabupaten.dao.RTRWDAO;
+import com.kabupaten.model.Fasilitas;
+import com.kabupaten.dao.FasilitasDAO;
 import com.kabupaten.listener.DataChangeListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
-import com.kabupaten.Dialog.DesaFormDialog;
+import com.kabupaten.Dialog.FasilitasFormDialog;
 
 /**
- * Panel CRUD untuk data Desa dengan Filter Kecamatan
+ * Panel CRUD untuk data Fasilitas
  */
-public class CrudDesaPanel extends JPanel {
-    private DesaDAO desaDAO = new DesaDAO();
-    private KecamatanDAO kecamatanDAO = new KecamatanDAO();
-    private RTRWDAO rtrwDAO = new RTRWDAO();
+public class CrudFasilitas extends JPanel {
+    private FasilitasDAO fasilitasDAO = new FasilitasDAO();
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
-    private JComboBox<String> cmbKecamatanFilter;
     private JComboBox<String> cmbJenisFilter;
     private JButton btnTambah, btnEdit, btnHapus, btnDetail;
 
     // Listener untuk notifikasi perubahan data
     private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
-    public CrudDesaPanel() {
+    public CrudFasilitas() {
         setLayout(new BorderLayout());
 
         // Panel pencarian dan filter
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.setBackground(new Color(245, 247, 250));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        searchPanel.add(new JLabel("Filter Kecamatan:"));
-        cmbKecamatanFilter = new JComboBox<>();
-        cmbKecamatanFilter.addItem("-- Semua Kecamatan --");
-        loadKecamatanList();
-        searchPanel.add(cmbKecamatanFilter);
-
-        searchPanel.add(new JLabel("  Jenis:"));
+        searchPanel.add(new JLabel("Jenis Fasilitas:"));
         cmbJenisFilter = new JComboBox<>();
         cmbJenisFilter.addItem("-- Semua --");
-        cmbJenisFilter.addItem("DESA");
-        cmbJenisFilter.addItem("KELURAHAN");
+        cmbJenisFilter.addItem("🏥 Kesehatan");
+        cmbJenisFilter.addItem("📚 Pendidikan");
+        cmbJenisFilter.addItem("🕌 Ibadah");
+        cmbJenisFilter.addItem("🏟️ Olahraga");
+        cmbJenisFilter.addItem("🏢 Pemerintahan");
+        cmbJenisFilter.addItem("🛒 Perekonomian");
+        cmbJenisFilter.addItem("🚌 Transportasi");
+        cmbJenisFilter.addItem("🌿 Lingkungan");
+        cmbJenisFilter.addItem("📡 Telekomunikasi");
+        cmbJenisFilter.addItem("⚡ Energi");
         searchPanel.add(cmbJenisFilter);
 
         searchPanel.add(new JLabel("  Pencarian:"));
-        txtSearch = new JTextField(15);
+        txtSearch = new JTextField(20);
+        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtSearch.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 210, 228), 1, true),
+                BorderFactory.createEmptyBorder(7, 11, 7, 11)));
         searchPanel.add(txtSearch);
+
+        // Tombol Cari
+        JButton btnCari = new JButton("🔍 Cari");
+        btnCari.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCari.setBackground(new Color(30, 60, 114));
+        btnCari.setForeground(Color.WHITE);
+        btnCari.setBorder(BorderFactory.createEmptyBorder(7, 15, 7, 15));
+        btnCari.setFocusPainted(false);
+        btnCari.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCari.addActionListener(e -> searchData());
+        searchPanel.add(btnCari);
 
         add(searchPanel, BorderLayout.NORTH);
 
-        // Tabel data Desa
+        // Tabel data Fasilitas
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "Kecamatan", "Nama Desa / Kelurahan", "Jenis", "Alamat Kantor",
-                        "Nama Kepala", "No HP" },
+                new Object[] { "ID", "Nama Fasilitas", "Jenis", "Dinas Terkait", "Alamat", "Keterangan" },
                 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -69,54 +80,53 @@ public class CrudDesaPanel extends JPanel {
 
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(35); // Taller rows
+        table.setRowHeight(40);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.setIntercellSpacing(new Dimension(10, 5));
+        table.setShowVerticalLines(false);
+        table.setGridColor(new Color(230, 240, 250));
 
         // Set lebar kolom
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
         table.getColumnModel().getColumn(2).setPreferredWidth(120);
-        table.getColumnModel().getColumn(3).setPreferredWidth(100);
-        table.getColumnModel().getColumn(4).setPreferredWidth(150);
-        table.getColumnModel().getColumn(5).setPreferredWidth(120);
-        table.getColumnModel().getColumn(6).setPreferredWidth(100);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(250);
+        table.getColumnModel().getColumn(5).setPreferredWidth(200);
 
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        add(scrollPane, BorderLayout.CENTER);
 
         // Panel tombol CRUD
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        btnTambah = new JButton("Tambah");
-        btnEdit = new JButton("Edit");
-        btnHapus = new JButton("Hapus");
-        btnDetail = new JButton("Detail");
-
-        btnTambah.setBackground(new Color(46, 125, 50));
-        btnTambah.setForeground(Color.WHITE);
-        btnEdit.setBackground(new Color(33, 150, 243));
-        btnEdit.setForeground(Color.WHITE);
-        btnHapus.setBackground(new Color(244, 67, 54));
-        btnHapus.setForeground(Color.WHITE);
-        btnDetail.setBackground(new Color(0, 128, 128)); // Teal color
-        btnDetail.setForeground(Color.WHITE);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        buttonPanel.setBackground(new Color(245, 247, 250));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        btnTambah = createStyledButton("➕ Tambah", new Color(46, 125, 50));
+        btnEdit = createStyledButton("✏️ Edit", new Color(33, 150, 243));
+        btnHapus = createStyledButton("🗑️ Hapus", new Color(244, 67, 54));
+        btnDetail = createStyledButton("📋 Detail", new Color(0, 128, 128));
+        
+        // Export Button
+        JButton btnExport = createStyledButton("📊 Export Data", new Color(40, 167, 69));
+        btnExport.addActionListener(e -> exportToCSV());
 
         buttonPanel.add(btnTambah);
         buttonPanel.add(btnEdit);
         buttonPanel.add(btnHapus);
         buttonPanel.add(btnDetail);
-
-        // Export Button
-        JButton btnExport = new JButton("Export Data");
-        btnExport.setBackground(new Color(40, 167, 69)); // Green Excel-like
-        btnExport.setForeground(Color.WHITE);
-        btnExport.addActionListener(e -> com.kabupaten.utils.ExportUtils.exportToCSV(table, "Desa"));
         buttonPanel.add(btnExport);
 
-        // UI Polish - Table
+        // UI Polish - Table Header
         table.getTableHeader().setBackground(new Color(30, 60, 114));
         table.getTableHeader().setForeground(Color.WHITE);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.setSelectionBackground(new Color(79, 172, 254));
-        table.setGridColor(new Color(230, 230, 230));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.setSelectionBackground(new Color(79, 172, 254, 100));
+        table.setSelectionForeground(new Color(30, 60, 114));
+        table.setShowGrid(true);
 
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -145,99 +155,71 @@ public class CrudDesaPanel extends JPanel {
         });
 
         // Filter listeners
-        cmbKecamatanFilter.addActionListener(e -> searchData());
         cmbJenisFilter.addActionListener(e -> searchData());
 
         // Load initial data
         refreshTable();
     }
 
-    public void setReadOnly(boolean readOnly) {
-        btnTambah.setVisible(!readOnly);
-        btnEdit.setVisible(!readOnly);
-        btnHapus.setVisible(!readOnly);
+    // ============================================================
+    // HELPER: Create Styled Button
+    // ============================================================
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setBackground(bgColor);
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.darker());
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+        
+        return button;
     }
 
-    // ========== LISTENER MANAGEMENT ==========
-    /**
-     * Menambahkan listener untuk perubahan data
-     */
+    // ============================================================
+    // LISTENER MANAGEMENT
+    // ============================================================
     public void addDataChangeListener(DataChangeListener listener) {
         dataChangeListeners.add(listener);
     }
 
-    /**
-     * Memberitahu semua listener bahwa data telah berubah
-     */
     private void notifyDataChanged() {
         for (DataChangeListener listener : dataChangeListeners) {
             listener.onDataChanged();
         }
     }
 
-    // ========== PUBLIC METHODS ==========
-    /**
-     * Method public untuk refresh dari luar (dipanggil oleh panel lain)
-     */
+    // ============================================================
+    // PUBLIC METHODS
+    // ============================================================
     public void refreshData() {
-        refreshKecamatanComboBox();
         refreshTable();
-    }
-
-    /**
-     * Method untuk refresh combo box kecamatan
-     */
-    public void refreshKecamatanComboBox() {
-        String currentSelection = (String) cmbKecamatanFilter.getSelectedItem();
-
-        // Matikan listener sementara untuk menghindari trigger berulang
-        cmbKecamatanFilter.removeAllItems();
-        cmbKecamatanFilter.addItem("-- Semua Kecamatan --");
-
-        List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
-        for (String kecamatan : kecamatanList) {
-            cmbKecamatanFilter.addItem(kecamatan);
-        }
-
-        // Coba pertahankan selection sebelumnya
-        if (currentSelection != null && !currentSelection.equals("-- Semua Kecamatan --")) {
-            boolean found = false;
-            for (String kec : kecamatanList) {
-                if (kec.equals(currentSelection)) {
-                    cmbKecamatanFilter.setSelectedItem(currentSelection);
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                cmbKecamatanFilter.setSelectedIndex(0);
-            }
-        } else {
-            cmbKecamatanFilter.setSelectedIndex(0);
-        }
-    }
-
-    // ========== PRIVATE METHODS ==========
-    private void loadKecamatanList() {
-        List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
-        for (String kecamatan : kecamatanList) {
-            cmbKecamatanFilter.addItem(kecamatan);
-        }
     }
 
     public void refreshTable() {
         tableModel.setRowCount(0);
         try {
-            List<Desa> desaList = desaDAO.getAllDesa();
-            for (Desa desa : desaList) {
+            List<Fasilitas> fasilitasList = fasilitasDAO.getAllFasilitas();
+            for (Fasilitas fasilitas : fasilitasList) {
                 tableModel.addRow(new Object[] {
-                        desa.getIdDesa(),
-                        desa.getNamaKecamatan() != null ? desa.getNamaKecamatan() : "-",
-                        desa.getNamaDesa() != null ? desa.getNamaDesa() : "-",
-                        desa.getJenis() != null ? desa.getJenis() : "-",
-                        desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "-",
-                        desa.getNamaKepala() != null ? desa.getNamaKepala() : "-",
-                        desa.getNoHp() != null ? desa.getNoHp() : "-"
+                        fasilitas.getIdFasilitas(),
+                        fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
+                        fasilitas.getJenis() != null ? getJenisIcon(fasilitas.getJenis()) + " " + fasilitas.getJenis() : "-",
+                        fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
+                        fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
+                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-"
                 });
             }
         } catch (Exception e) {
@@ -249,65 +231,65 @@ public class CrudDesaPanel extends JPanel {
         }
     }
 
+    private String getJenisIcon(String jenis) {
+        if (jenis == null) return "📋";
+        if (jenis.contains("Kesehatan")) return "🏥";
+        if (jenis.contains("Pendidikan")) return "📚";
+        if (jenis.contains("Ibadah")) return "🕌";
+        if (jenis.contains("Olahraga")) return "🏟️";
+        if (jenis.contains("Pemerintahan")) return "🏢";
+        if (jenis.contains("Perekonomian")) return "🛒";
+        if (jenis.contains("Transportasi")) return "🚌";
+        if (jenis.contains("Lingkungan")) return "🌿";
+        if (jenis.contains("Telekomunikasi")) return "📡";
+        if (jenis.contains("Energi")) return "⚡";
+        return "📋";
+    }
+
     private void searchData() {
         String keyword = txtSearch.getText().trim().toLowerCase();
-        String selectedKecamatan = (String) cmbKecamatanFilter.getSelectedItem();
         String selectedJenis = (String) cmbJenisFilter.getSelectedItem();
 
-        // Validasi null
-        if (selectedKecamatan == null) {
-            selectedKecamatan = "-- Semua Kecamatan --";
-        }
         if (selectedJenis == null) {
             selectedJenis = "-- Semua --";
         }
 
-        boolean filterAllKecamatan = selectedKecamatan.equals("-- Semua Kecamatan --");
         boolean filterAllJenis = selectedJenis.equals("-- Semua --");
 
         tableModel.setRowCount(0);
         try {
-            List<Desa> desaList = desaDAO.getAllDesa();
+            List<Fasilitas> fasilitasList = fasilitasDAO.getAllFasilitas();
 
-            for (Desa desa : desaList) {
-                String namaKecamatanDesa = desa.getNamaKecamatan();
-                String jenisDesa = desa.getJenis();
-
-                // Filter berdasarkan kecamatan
-                if (!filterAllKecamatan) {
-                    if (namaKecamatanDesa == null || !selectedKecamatan.equals(namaKecamatanDesa)) {
-                        continue;
-                    }
-                }
+            for (Fasilitas fasilitas : fasilitasList) {
+                String jenisFasilitas = fasilitas.getJenis();
 
                 // Filter berdasarkan jenis
                 if (!filterAllJenis) {
-                    if (jenisDesa == null || !selectedJenis.equals(jenisDesa)) {
+                    if (jenisFasilitas == null || !selectedJenis.equals(jenisFasilitas)) {
                         continue;
                     }
                 }
 
                 // Filter berdasarkan keyword
                 if (!keyword.isEmpty()) {
-                    String namaDesa = desa.getNamaDesa() != null ? desa.getNamaDesa().toLowerCase() : "";
-                    String alamat = desa.getAlamatKantor() != null ? desa.getAlamatKantor().toLowerCase() : "";
-                    String namaKepala = desa.getNamaKepala() != null ? desa.getNamaKepala().toLowerCase() : "";
+                    String namaFasilitas = fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas().toLowerCase() : "";
+                    String dinasTerkait = fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait().toLowerCase() : "";
+                    String alamat = fasilitas.getAlamat() != null ? fasilitas.getAlamat().toLowerCase() : "";
+                    String keterangan = fasilitas.getKeterangan() != null ? fasilitas.getKeterangan().toLowerCase() : "";
 
-                    if (!namaDesa.contains(keyword) && !alamat.contains(keyword) &&
-                            !namaKepala.contains(keyword)
-                            && (namaKecamatanDesa == null || !namaKecamatanDesa.toLowerCase().contains(keyword))) {
+                    if (!namaFasilitas.contains(keyword) && !dinasTerkait.contains(keyword) &&
+                            !alamat.contains(keyword) && !keterangan.contains(keyword)) {
                         continue;
                     }
                 }
 
                 tableModel.addRow(new Object[] {
-                        desa.getIdDesa(),
-                        namaKecamatanDesa != null ? namaKecamatanDesa : "-",
-                        desa.getNamaDesa() != null ? desa.getNamaDesa() : "-",
-                        jenisDesa != null ? jenisDesa : "-",
-                        desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "-",
-                        desa.getNamaKepala() != null ? desa.getNamaKepala() : "-",
-                        desa.getNoHp() != null ? desa.getNoHp() : "-"
+                        fasilitas.getIdFasilitas(),
+                        fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
+                        fasilitas.getJenis() != null ? getJenisIcon(fasilitas.getJenis()) + " " + fasilitas.getJenis() : "-",
+                        fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
+                        fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
+                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-"
                 });
             }
         } catch (Exception e) {
@@ -319,33 +301,31 @@ public class CrudDesaPanel extends JPanel {
     }
 
     private void tambahData() {
-        DesaFormDialog dialog = new DesaFormDialog(
+        FasilitasFormDialog dialog = new FasilitasFormDialog(
                 (Frame) SwingUtilities.getWindowAncestor(this),
-                "Tambah Data Desa",
+                "Tambah Data Fasilitas",
                 true);
 
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            Desa desa = dialog.getDesa();
+            Fasilitas fasilitas = dialog.getFasilitas();
 
             try {
-                boolean success = desaDAO.addDesa(desa);
+                boolean success = fasilitasDAO.addFasilitas(fasilitas);
 
                 if (success) {
                     JOptionPane.showMessageDialog(this,
-                            "Data desa berhasil ditambahkan!",
+                            "Data fasilitas berhasil ditambahkan!",
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                     txtSearch.setText("");
 
-                    // PENTING: Notifikasi panel lain untuk refresh
                     notifyDataChanged();
-                    refreshKecamatanComboBox();
                 } else {
                     JOptionPane.showMessageDialog(this,
-                            "Gagal menambahkan data!\nNama desa mungkin sudah ada di kecamatan yang sama.",
+                            "Gagal menambahkan data!",
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
@@ -370,10 +350,10 @@ public class CrudDesaPanel extends JPanel {
             return;
         }
 
-        int idDesa = (int) table.getValueAt(row, 0);
-        Desa desa = desaDAO.getDesaById(idDesa);
+        int idFasilitas = (int) table.getValueAt(row, 0);
+        Fasilitas fasilitas = fasilitasDAO.getFasilitasById(idFasilitas);
 
-        if (desa == null) {
+        if (fasilitas == null) {
             JOptionPane.showMessageDialog(this,
                     "Data tidak ditemukan!",
                     "Error",
@@ -381,32 +361,31 @@ public class CrudDesaPanel extends JPanel {
             return;
         }
 
-        DesaFormDialog dialog = new DesaFormDialog(
+        FasilitasFormDialog dialog = new FasilitasFormDialog(
                 (Frame) SwingUtilities.getWindowAncestor(this),
-                "Edit Data Desa",
+                "Edit Data Fasilitas",
                 true,
-                desa);
+                fasilitas);
 
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            Desa updatedDesa = dialog.getDesa();
+            Fasilitas updatedFasilitas = dialog.getFasilitas();
 
             try {
-                boolean success = desaDAO.updateDesa(updatedDesa);
+                boolean success = fasilitasDAO.updateFasilitas(updatedFasilitas);
 
                 if (success) {
                     JOptionPane.showMessageDialog(this,
-                            "Data desa berhasil diupdate!",
+                            "Data fasilitas berhasil diupdate!",
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
 
-                    // PENTING: Notifikasi panel lain untuk refresh
                     notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this,
-                            "Gagal mengupdate data!\nNama desa mungkin sudah ada di kecamatan yang sama.",
+                            "Gagal mengupdate data!",
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
@@ -431,30 +410,27 @@ public class CrudDesaPanel extends JPanel {
             return;
         }
 
-        int idDesa = (int) table.getValueAt(row, 0);
-        String namaDesa = table.getValueAt(row, 2).toString();
+        int idFasilitas = (int) table.getValueAt(row, 0);
+        String namaFasilitas = table.getValueAt(row, 1).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Apakah Anda yakin ingin menghapus desa:\n" + namaDesa + "?",
+                "Apakah Anda yakin ingin menghapus fasilitas:\n" + namaFasilitas + "?",
                 "Konfirmasi Hapus",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                boolean success = desaDAO.deleteDesa(idDesa);
+                boolean success = fasilitasDAO.deleteFasilitas(idFasilitas);
 
                 if (success) {
                     JOptionPane.showMessageDialog(this,
-                            "Data desa berhasil dihapus!",
+                            "Data fasilitas berhasil dihapus!",
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
 
-                    // Refresh data lokal
-                    refreshKecamatanComboBox();
                     refreshTable();
 
-                    // PENTING: Notifikasi panel lain untuk refresh
                     notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this,
@@ -483,64 +459,90 @@ public class CrudDesaPanel extends JPanel {
             return;
         }
 
-        int idDesa = (int) table.getValueAt(row, 0);
-        Desa desa = desaDAO.getDesaById(idDesa);
+        int idFasilitas = (int) table.getValueAt(row, 0);
+        Fasilitas fasilitas = fasilitasDAO.getFasilitasById(idFasilitas);
 
-        if (desa != null) {
-            // Ambil daftar RT/RW
-            List<RTRW> rtrwList = rtrwDAO.getRTRWByDesaName(desa.getNamaDesa());
-            StringBuilder listRtrw = new StringBuilder("\n=== DAFTAR RT/RW ===\n");
-
-            if (rtrwList.isEmpty()) {
-                listRtrw.append("(Belum ada data)\n");
-            } else {
-                for (int i = 0; i < rtrwList.size(); i++) {
-                    RTRW r = rtrwList.get(i);
-                    listRtrw.append(String.format("%d. RT %s / RW %s (Ketua: %s)\n",
-                            (i + 1), r.getRt(), r.getRw(),
-                            r.getNamaKetua() != null ? r.getNamaKetua() : "-"));
-                }
-            }
-
+        if (fasilitas != null) {
             String detail = String.format(
-                    "========== DETAIL DATA DESA ==========\n\n" +
-                            "ID Desa           : %d\n" +
-                            "Kecamatan         : %s\n" +
-                            "Nama Desa         : %s\n" +
-                            "Jenis             : %s\n" +
-                            "Alamat Kantor     : %s\n" +
-                            "Nama Kepala       : %s\n" +
-                            "Alamat Rumah      : %s\n" +
-                            "No HP             : %s\n\n" +
-                            "Dibuat pada       : %s\n" +
-                            "Terakhir diupdate : %s\n" +
-                            "%s",
-                    desa.getIdDesa(),
-                    desa.getNamaKecamatan() != null ? desa.getNamaKecamatan() : "-",
-                    desa.getNamaDesa() != null ? desa.getNamaDesa() : "-",
-                    desa.getJenis() != null ? desa.getJenis() : "-",
-                    desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "-",
-                    desa.getNamaKepala() != null ? desa.getNamaKepala() : "-",
-                    desa.getAlamatRumahKepala() != null ? desa.getAlamatRumahKepala() : "-",
-                    desa.getNoHp() != null ? desa.getNoHp() : "-",
-                    desa.getCreatedAt() != null ? desa.getCreatedAt() : "-",
-                    desa.getUpdatedAt() != null ? desa.getUpdatedAt() : "-",
-                    listRtrw.toString());
+                    "╔══════════════════════════════════════════════════════════╗\n" +
+                    "║                    DETAIL DATA FASILITAS                  ║\n" +
+                    "╠══════════════════════════════════════════════════════════╣\n" +
+                    "║ ID Fasilitas     : %d\n" +
+                    "║ Nama Fasilitas   : %s\n" +
+                    "║ Jenis            : %s\n" +
+                    "║ Dinas Terkait    : %s\n" +
+                    "║ Alamat           : %s\n" +
+                    "║ Keterangan       : %s\n" +
+                    "║ Dibuat pada      : %s\n" +
+                    "║ Terakhir update  : %s\n" +
+                    "╚══════════════════════════════════════════════════════════╝",
+                    fasilitas.getIdFasilitas(),
+                    fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
+                    fasilitas.getJenis() != null ? fasilitas.getJenis() : "-",
+                    fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
+                    fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
+                    fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-",
+                    fasilitas.getCreatedAt() != null ? fasilitas.getCreatedAt() : "-",
+                    fasilitas.getUpdatedAt() != null ? fasilitas.getUpdatedAt() : "-");
 
             JTextArea textArea = new JTextArea(detail);
             textArea.setEditable(false);
             textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            textArea.setBackground(new Color(250, 250, 252));
+            textArea.setMargin(new Insets(15, 15, 15, 15));
 
             JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(550, 450));
+            scrollPane.setPreferredSize(new Dimension(600, 450));
 
             JOptionPane.showMessageDialog(this,
                     scrollPane,
-                    "Detail Data Desa - " + desa.getNamaDesa(),
+                    "Detail Fasilitas - " + fasilitas.getNamaFasilitas(),
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this,
                     "Data tidak ditemukan!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void exportToCSV() {
+        try {
+            // Simpan ke file CSV
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setSelectedFile(new java.io.File("fasilitas_export.csv"));
+            int result = fileChooser.showSaveDialog(this);
+            
+            if (result == JFileChooser.APPROVE_OPTION) {
+                java.io.File file = fileChooser.getSelectedFile();
+                java.io.FileWriter writer = new java.io.FileWriter(file);
+                
+                // Header
+                for (int i = 0; i < tableModel.getColumnCount(); i++) {
+                    writer.append(tableModel.getColumnName(i));
+                    if (i < tableModel.getColumnCount() - 1) writer.append(",");
+                }
+                writer.append("\n");
+                
+                // Data
+                for (int i = 0; i < tableModel.getRowCount(); i++) {
+                    for (int j = 0; j < tableModel.getColumnCount(); j++) {
+                        Object value = tableModel.getValueAt(i, j);
+                        writer.append(value != null ? value.toString() : "");
+                        if (j < tableModel.getColumnCount() - 1) writer.append(",");
+                    }
+                    writer.append("\n");
+                }
+                
+                writer.close();
+                JOptionPane.showMessageDialog(this,
+                        "Data berhasil diekspor ke:\n" + file.getAbsolutePath(),
+                        "Sukses",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error export data: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }

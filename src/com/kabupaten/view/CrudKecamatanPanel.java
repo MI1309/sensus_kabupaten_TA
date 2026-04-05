@@ -7,10 +7,14 @@ import com.kabupaten.dao.DesaDAO;
 import com.kabupaten.listener.DataChangeListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.kabupaten.Dialog.KecamatanFormDialog;
+import java.io.File;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 /**
  * Panel CRUD untuk data Kecamatan dengan jumlah Desa dan Kelurahan
@@ -26,7 +30,6 @@ public class CrudKecamatanPanel extends JPanel {
     private JLabel lblTotalKelurahan;
     private JButton btnTambah, btnEdit, btnHapus, btnDetail;
 
-    // PERBAIKAN: Hanya satu deklarasi field
     private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 
     public CrudKecamatanPanel() {
@@ -40,31 +43,43 @@ public class CrudKecamatanPanel extends JPanel {
 
         add(searchPanel, BorderLayout.NORTH);
 
-        // Tabel data Kecamatan
+        // Tabel data Kecamatan dengan kolom gambar
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "Nama Kecamatan", "Alamat Kantor", "Nama Kepala",
+                new Object[] { "ID", "Foto", "Nama Kecamatan", "Alamat Kantor", "Nama Pejabat",
                         "No HP", "Jumlah Desa", "Jumlah Kelurahan", "Total" },
                 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+            
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 1) {
+                    return ImageIcon.class;
+                }
+                return super.getColumnClass(columnIndex);
+            }
         };
 
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(35); // Taller rows
+        table.setRowHeight(80); // Tinggi baris untuk menampilkan gambar
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         // Set lebar kolom
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(150);
-        table.getColumnModel().getColumn(2).setPreferredWidth(200);
-        table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        table.getColumnModel().getColumn(4).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100); // Kolom Foto
+        table.getColumnModel().getColumn(2).setPreferredWidth(150);
+        table.getColumnModel().getColumn(3).setPreferredWidth(200);
+        table.getColumnModel().getColumn(4).setPreferredWidth(150);
         table.getColumnModel().getColumn(5).setPreferredWidth(100);
-        table.getColumnModel().getColumn(6).setPreferredWidth(120);
-        table.getColumnModel().getColumn(7).setPreferredWidth(80);
+        table.getColumnModel().getColumn(6).setPreferredWidth(100);
+        table.getColumnModel().getColumn(7).setPreferredWidth(120);
+        table.getColumnModel().getColumn(8).setPreferredWidth(80);
+
+        // Custom renderer untuk kolom gambar
+        table.getColumnModel().getColumn(1).setCellRenderer(new ImageRenderer());
 
         add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -84,7 +99,7 @@ public class CrudKecamatanPanel extends JPanel {
         btnEdit.setForeground(Color.WHITE);
         btnHapus.setBackground(new Color(244, 67, 54));
         btnHapus.setForeground(Color.WHITE);
-        btnDetail.setBackground(new Color(0, 128, 128)); // Teal color
+        btnDetail.setBackground(new Color(0, 128, 128));
         btnDetail.setForeground(Color.WHITE);
 
         buttonPanel.add(btnTambah);
@@ -94,16 +109,16 @@ public class CrudKecamatanPanel extends JPanel {
 
         // Export Button
         JButton btnExport = new JButton("Export Data");
-        btnExport.setBackground(new Color(40, 167, 69)); // Green Excel-like
+        btnExport.setBackground(new Color(40, 167, 69));
         btnExport.setForeground(Color.WHITE);
         btnExport.addActionListener(e -> com.kabupaten.utils.ExportUtils.exportToCSV(table, "Kecamatan"));
         buttonPanel.add(btnExport);
 
         // UI Polish - Table
-        table.getTableHeader().setBackground(new Color(30, 60, 114)); // Header Background
+        table.getTableHeader().setBackground(new Color(30, 60, 114));
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.setSelectionBackground(new Color(79, 172, 254)); // Selection Color
+        table.setSelectionBackground(new Color(79, 172, 254));
         table.setGridColor(new Color(230, 230, 230));
 
         // Panel statistik
@@ -127,26 +142,10 @@ public class CrudKecamatanPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
 
         // Event handlers
-        btnTambah.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                tambahData();
-            }
-        });
-        btnEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                editData();
-            }
-        });
-        btnHapus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                hapusData();
-            }
-        });
-        btnDetail.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                showDetail();
-            }
-        });
+        btnTambah.addActionListener(e -> tambahData());
+        btnEdit.addActionListener(e -> editData());
+        btnHapus.addActionListener(e -> hapusData());
+        btnDetail.addActionListener(e -> showDetail());
 
         // Live search
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -176,7 +175,6 @@ public class CrudKecamatanPanel extends JPanel {
         btnHapus.setVisible(!readOnly);
     }
 
-    // ========== LISTENER METHODS (PENTING!) ==========
     public void addDataChangeListener(DataChangeListener listener) {
         dataChangeListeners.add(listener);
     }
@@ -187,12 +185,92 @@ public class CrudKecamatanPanel extends JPanel {
         }
     }
 
-    // PENTING: Method ini HARUS ada
     public void refreshData() {
         refreshTable();
     }
 
-    // ========== PRIVATE METHODS ==========
+    /**
+     * Class untuk renderer gambar di tabel
+     */
+    private class ImageRenderer extends DefaultTableCellRenderer {
+        private final int imageWidth = 70;
+        private final int imageHeight = 70;
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(JLabel.CENTER);
+            label.setVerticalAlignment(JLabel.CENTER);
+            
+            // Set background untuk selected/unselected
+            if (isSelected) {
+                label.setBackground(table.getSelectionBackground());
+                label.setForeground(table.getSelectionForeground());
+            } else {
+                label.setBackground(table.getBackground());
+                label.setForeground(table.getForeground());
+            }
+            label.setOpaque(true);
+            
+            if (value instanceof ImageIcon) {
+                ImageIcon icon = (ImageIcon) value;
+                // Resize gambar agar sesuai dengan ukuran baris
+                Image img = icon.getImage();
+                Image scaledImg = img.getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
+                label.setIcon(new ImageIcon(scaledImg));
+                label.setText("");
+            } else {
+                // Gambar dummy jika tidak ada foto
+                label.setIcon(createDummyImage());
+                label.setText("");
+            }
+            
+            return label;
+        }
+        
+        /**
+         * Membuat gambar dummy (placeholder) jika tidak ada foto
+         */
+        private ImageIcon createDummyImage() {
+            BufferedImage dummy = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = dummy.createGraphics();
+            
+            // Background gradient
+            GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(30, 60, 114),
+                    imageWidth, imageHeight, new Color(79, 172, 254));
+            g2d.setPaint(gradient);
+            g2d.fillRect(0, 0, imageWidth, imageHeight);
+            
+            // Border
+            g2d.setColor(new Color(255, 255, 255, 100));
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRect(2, 2, imageWidth - 5, imageHeight - 5);
+            
+            // Icon kamera
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+            FontMetrics fm = g2d.getFontMetrics();
+            String cameraIcon = "📷";
+            int x = (imageWidth - fm.stringWidth(cameraIcon)) / 2;
+            int y = (imageHeight + fm.getAscent() - fm.getDescent()) / 2;
+            g2d.drawString(cameraIcon, x, y);
+            
+            // Text kecil
+            g2d.setFont(new Font("Segoe UI", Font.PLAIN, 8));
+            fm = g2d.getFontMetrics();
+            String noImg = "No Image";
+            x = (imageWidth - fm.stringWidth(noImg)) / 2;
+            g2d.drawString(noImg, x, y + 20);
+            
+            g2d.dispose();
+            
+            return new ImageIcon(dummy);
+        }
+    }
+
     private void refreshTable() {
         tableModel.setRowCount(0);
         int totalDesa = 0;
@@ -208,8 +286,12 @@ public class CrudKecamatanPanel extends JPanel {
                 totalDesa += jmlDesa;
                 totalKelurahan += jmlKelurahan;
 
+                // Load gambar
+                ImageIcon fotoIcon = loadImage(kec.getFotoUrl());
+
                 tableModel.addRow(new Object[] {
                         kec.getIdKecamatan(),
+                        fotoIcon,
                         kec.getNamaKecamatan() != null ? kec.getNamaKecamatan() : "-",
                         kec.getAlamatKantor() != null ? kec.getAlamatKantor() : "-",
                         kec.getNamaKepala() != null ? kec.getNamaKepala() : "-",
@@ -231,6 +313,38 @@ public class CrudKecamatanPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Method untuk load gambar dari path
+     * @param fotoPath Path file gambar
+     * @return ImageIcon atau null jika gagal
+     */
+    private ImageIcon loadImage(String fotoPath) {
+        if (fotoPath == null || fotoPath.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            File imgFile = new File(fotoPath);
+            if (!imgFile.exists()) {
+                // Coba dari project path
+                String projectPath = System.getProperty("user.dir");
+                imgFile = new File(projectPath + "/" + fotoPath);
+            }
+            
+            if (imgFile.exists()) {
+                ImageIcon icon = new ImageIcon(imgFile.getPath());
+                // Resize awal agar tidak terlalu besar
+                Image img = icon.getImage();
+                Image scaled = img.getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaled);
+            }
+        } catch (Exception e) {
+            // Gagal load gambar
+            System.err.println("Gagal load gambar: " + fotoPath);
+        }
+        return null;
     }
 
     private void searchData() {
@@ -255,8 +369,11 @@ public class CrudKecamatanPanel extends JPanel {
                 totalDesa += jmlDesa;
                 totalKelurahan += jmlKelurahan;
 
+                ImageIcon fotoIcon = loadImage(kec.getFotoUrl());
+
                 tableModel.addRow(new Object[] {
                         kec.getIdKecamatan(),
+                        fotoIcon,
                         kec.getNamaKecamatan() != null ? kec.getNamaKecamatan() : "-",
                         kec.getAlamatKantor() != null ? kec.getAlamatKantor() : "-",
                         kec.getNamaKepala() != null ? kec.getNamaKepala() : "-",
@@ -300,7 +417,7 @@ public class CrudKecamatanPanel extends JPanel {
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
                     txtSearch.setText("");
-                    notifyDataChanged(); // Notify listeners
+                    notifyDataChanged();
                     
                 } else {
                     JOptionPane.showMessageDialog(this,
@@ -340,6 +457,9 @@ public class CrudKecamatanPanel extends JPanel {
             return;
         }
 
+        // Simpan path foto lama untuk backup jika user tidak memilih foto baru
+        final String oldFotoPath = kecamatan.getFotoUrl();
+
         KecamatanFormDialog dialog = new KecamatanFormDialog(
                 (Frame) SwingUtilities.getWindowAncestor(this),
                 "Edit Data Kecamatan",
@@ -350,6 +470,11 @@ public class CrudKecamatanPanel extends JPanel {
 
         if (dialog.isConfirmed()) {
             Kecamatan updatedKecamatan = dialog.getKecamatan();
+            
+            // Jika user tidak memilih foto baru, gunakan foto lama
+            if (updatedKecamatan.getFotoUrl() == null || updatedKecamatan.getFotoUrl().trim().isEmpty()) {
+                updatedKecamatan.setFotoUrl(oldFotoPath);
+            }
 
             try {
                 boolean success = kecamatanDAO.updateKecamatan(updatedKecamatan);
@@ -360,7 +485,7 @@ public class CrudKecamatanPanel extends JPanel {
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
-                    notifyDataChanged(); // Notify listeners
+                    notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this,
                             "Gagal mengupdate data!\nNama kecamatan mungkin sudah ada.",
@@ -389,9 +514,9 @@ public class CrudKecamatanPanel extends JPanel {
         }
 
         int idKecamatan = (int) table.getValueAt(row, 0);
-        String namaKecamatan = table.getValueAt(row, 1).toString();
-        int jumlahDesa = (int) table.getValueAt(row, 5);
-        int jumlahKelurahan = (int) table.getValueAt(row, 6);
+        String namaKecamatan = table.getValueAt(row, 2).toString();
+        int jumlahDesa = (int) table.getValueAt(row, 6);
+        int jumlahKelurahan = (int) table.getValueAt(row, 7);
         int total = jumlahDesa + jumlahKelurahan;
 
         if (total > 0) {
@@ -415,6 +540,19 @@ public class CrudKecamatanPanel extends JPanel {
 
         if (result == JOptionPane.YES_OPTION) {
             try {
+                // Hapus file gambar jika ada
+                Kecamatan kec = kecamatanDAO.getKecamatanById(idKecamatan);
+                if (kec != null && kec.getFotoUrl() != null && !kec.getFotoUrl().trim().isEmpty()) {
+                    File imgFile = new File(kec.getFotoUrl());
+                    if (!imgFile.exists()) {
+                        String projectPath = System.getProperty("user.dir");
+                        imgFile = new File(projectPath + "/" + kec.getFotoUrl());
+                    }
+                    if (imgFile.exists()) {
+                        imgFile.delete(); // Hapus file gambar
+                    }
+                }
+                
                 boolean success = kecamatanDAO.deleteKecamatan(idKecamatan);
 
                 if (success) {
@@ -423,7 +561,7 @@ public class CrudKecamatanPanel extends JPanel {
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshTable();
-                    notifyDataChanged(); // Notify listeners
+                    notifyDataChanged();
                 } else {
                     JOptionPane.showMessageDialog(this,
                             "Gagal menghapus data!",
@@ -468,15 +606,33 @@ public class CrudKecamatanPanel extends JPanel {
                 }
             }
 
+            // Load gambar untuk ditampilkan di detail
+            String imageInfo = "";
+            if (kec.getFotoUrl() != null && !kec.getFotoUrl().trim().isEmpty()) {
+                File imgFile = new File(kec.getFotoUrl());
+                if (!imgFile.exists()) {
+                    String projectPath = System.getProperty("user.dir");
+                    imgFile = new File(projectPath + "/" + kec.getFotoUrl());
+                }
+                if (imgFile.exists()) {
+                    imageInfo = "\n📸 Foto Kecamatan    : " + kec.getFotoUrl() + " (Ada)\n";
+                } else {
+                    imageInfo = "\n📸 Foto Kecamatan    : File tidak ditemukan\n";
+                }
+            } else {
+                imageInfo = "\n📸 Foto Kecamatan    : Belum ada foto\n";
+            }
+
             String detail = String.format(
                     "========== DETAIL DATA KECAMATAN ==========\n\n" +
                             "ID Kecamatan         : %d\n" +
                             "Nama Kecamatan       : %s\n" +
                             "Alamat Kantor        : %s\n" +
-                            "Nama Kepala          : %s\n" +
+                            "Nama Pejabat         : %s\n" +
                             "Alamat Rumah Kepala  : %s\n" +
-                            "No HP                : %s\n\n" +
-                            "=== STATISTIK WILAYAH ===\n" +
+                            "No HP                : %s\n" +
+                            "%s" +
+                            "\n=== STATISTIK WILAYAH ===\n" +
                             "Jumlah Desa          : %d\n" +
                             "Jumlah Kelurahan     : %d\n" +
                             "Total Wilayah        : %d\n\n" +
@@ -489,6 +645,7 @@ public class CrudKecamatanPanel extends JPanel {
                     kec.getNamaKepala() != null ? kec.getNamaKepala() : "-",
                     kec.getAlamatRumahKepala() != null ? kec.getAlamatRumahKepala() : "-",
                     kec.getNoHp() != null ? kec.getNoHp() : "-",
+                    imageInfo,
                     kec.getJumlahDesa(),
                     kec.getJumlahKelurahan(),
                     kec.getTotalWilayahAdministratif(),
@@ -496,12 +653,50 @@ public class CrudKecamatanPanel extends JPanel {
                     kec.getUpdatedAt() != null ? kec.getUpdatedAt() : "-",
                     listDesa.toString());
 
+            // Buat panel dengan scroll pane dan preview gambar jika ada
+            JPanel detailPanel = new JPanel(new BorderLayout(10, 10));
+            
             JTextArea textArea = new JTextArea(detail);
             textArea.setEditable(false);
             textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            
+            JScrollPane textScrollPane = new JScrollPane(textArea);
+            textScrollPane.setPreferredSize(new Dimension(600, 450));
+            detailPanel.add(textScrollPane, BorderLayout.CENTER);
+            
+            // Jika ada foto, tampilkan preview
+            if (kec.getFotoUrl() != null && !kec.getFotoUrl().trim().isEmpty()) {
+                File imgFile = new File(kec.getFotoUrl());
+                if (!imgFile.exists()) {
+                    String projectPath = System.getProperty("user.dir");
+                    imgFile = new File(projectPath + "/" + kec.getFotoUrl());
+                }
+                if (imgFile.exists()) {
+                    try {
+                        ImageIcon icon = new ImageIcon(imgFile.getPath());
+                        int imgW = icon.getIconWidth();
+                        int imgH = icon.getIconHeight();
+                        int maxW = 200, maxH = 150;
+                        double scale = Math.min((double) maxW / imgW, (double) maxH / imgH);
+                        int newW = (int) (imgW * scale);
+                        int newH = (int) (imgH * scale);
+                        Image scaled = icon.getImage().getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+                        JLabel lblFotoPreview = new JLabel(new ImageIcon(scaled));
+                        lblFotoPreview.setHorizontalAlignment(JLabel.CENTER);
+                        lblFotoPreview.setBorder(BorderFactory.createTitledBorder("Preview Kecamatan"));
+                        
+                        JPanel fotoPanel = new JPanel(new BorderLayout());
+                        fotoPanel.add(lblFotoPreview, BorderLayout.CENTER);
+                        fotoPanel.setPreferredSize(new Dimension(220, 180));
+                        detailPanel.add(fotoPanel, BorderLayout.EAST);
+                    } catch (Exception e) {
+                        // Gagal load preview
+                    }
+                }
+            }
 
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(550, 450));
+            JScrollPane scrollPane = new JScrollPane(detailPanel);
+            scrollPane.setPreferredSize(new Dimension(850, 550));
 
             JOptionPane.showMessageDialog(this,
                     scrollPane,

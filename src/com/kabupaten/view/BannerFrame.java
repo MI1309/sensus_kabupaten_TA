@@ -264,10 +264,6 @@ public class BannerFrame extends JFrame {
         
         panel.add(Box.createRigidArea(new Dimension(0, 45)), gbc);
         
-        // Statistik cards
-        JPanel statsPanel = createStatsPanel();
-        statsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.add(statsPanel, gbc);
         
         panel.add(Box.createRigidArea(new Dimension(0, 50)), gbc);
         
@@ -299,24 +295,6 @@ public class BannerFrame extends JFrame {
         });
         
         btnEnter.addActionListener(e -> fadeOutAndNavigate());
-        
-        return panel;
-    }
-    
-    private JPanel createStatsPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 3, 25, 0));
-        panel.setOpaque(false);
-        
-        // Card 1: Kecamatan
-        JPanel card1 = createStatCard("KECAMATAN", "18", "Wilayah Administratif");
-        // Card 2: Desa/Kelurahan
-        JPanel card2 = createStatCard("DESA/KELURAHAN", "353", "Tersebar di 18 Kecamatan");
-        // Card 3: Penduduk
-        JPanel card3 = createStatCard("PENDUDUK", "2.1 Jt", "Jiwa (Data 2025)");
-        
-        panel.add(card1);
-        panel.add(card2);
-        panel.add(card3);
         
         return panel;
     }
@@ -442,7 +420,13 @@ public class BannerFrame extends JFrame {
         return closeBtn;
     }
     
-    private void startFadeInAnimation() {
+private void startFadeInAnimation() {
+    // Cek apakah translucency didukung oleh sistem
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    
+    if (gd.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.TRANSLUCENT)) {
+        // Jika didukung, jalankan animasi fade
         setOpacity(0f);
         fadeTimer = new Timer(16, new ActionListener() {
             @Override
@@ -456,9 +440,18 @@ public class BannerFrame extends JFrame {
             }
         });
         fadeTimer.start();
+    } else {
+        // Jika tidak didukung, langsung tampilkan tanpa animasi
+        System.out.println("Translucency not supported, skipping fade animation");
+        setVisible(true);
     }
+}
     
-    private void fadeOutAndNavigate() {
+private void fadeOutAndNavigate() {
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice gd = ge.getDefaultScreenDevice();
+    
+    if (gd.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.TRANSLUCENT)) {
         Timer fadeOutTimer = new Timer(16, new ActionListener() {
             float fadeOutOpacity = 1.0f;
             
@@ -479,7 +472,14 @@ public class BannerFrame extends JFrame {
             }
         });
         fadeOutTimer.start();
+    } else {
+        // Langsung navigasi tanpa animasi
+        BannerFrame.this.dispose();
+        SwingUtilities.invokeLater(() -> {
+            new dashboard_guest().setVisible(true);
+        });
     }
+}
     
     private void setupFrame() {
         setSize(1100, 650);

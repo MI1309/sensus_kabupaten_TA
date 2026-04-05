@@ -3,6 +3,7 @@ package com.kabupaten.main;
 import com.kabupaten.database.DatabaseConnection;
 import com.kabupaten.view.BannerFrame;
 import com.kabupaten.view.LoginFrame;
+import com.kabupaten.view.dashboard_guest;
 import com.kabupaten.view.LoadingScreen;
 import com.kabupaten.view.dashboard_guest;
 
@@ -50,7 +51,7 @@ public class MainApplication {
 
         // Jalankan aplikasi di Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
-            new LoginFrame().setVisible(true);
+            new BannerFrame().setVisible(true);
         });
     }
 
