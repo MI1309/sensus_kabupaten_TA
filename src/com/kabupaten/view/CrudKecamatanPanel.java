@@ -45,8 +45,8 @@ public class CrudKecamatanPanel extends JPanel {
 
         // Tabel data Kecamatan dengan kolom gambar
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "Foto", "Nama Kecamatan", "Alamat Kantor", "Nama Pejabat",
-                        "No HP", "Jumlah Desa", "Jumlah Kelurahan", "Total" },
+                new Object[] { "No", "Foto", "Nama Kecamatan", "Alamat Kantor", "Nama Pejabat",
+                        "No HP", "Jumlah Desa", "Jumlah Kelurahan", "Total", "ID_HIDDEN" },
                 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -77,6 +77,11 @@ public class CrudKecamatanPanel extends JPanel {
         table.getColumnModel().getColumn(6).setPreferredWidth(100);
         table.getColumnModel().getColumn(7).setPreferredWidth(120);
         table.getColumnModel().getColumn(8).setPreferredWidth(80);
+
+        // Hide ID_HIDDEN column
+        table.getColumnModel().getColumn(9).setMinWidth(0);
+        table.getColumnModel().getColumn(9).setMaxWidth(0);
+        table.getColumnModel().getColumn(9).setPreferredWidth(0);
 
         // Custom renderer untuk kolom gambar
         table.getColumnModel().getColumn(1).setCellRenderer(new ImageRenderer());
@@ -115,11 +120,25 @@ public class CrudKecamatanPanel extends JPanel {
         buttonPanel.add(btnExport);
 
         // UI Polish - Table
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
-        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setBackground(Color.black);
+        table.getTableHeader().setForeground(Color.white);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.setSelectionBackground(new Color(79, 172, 254));
+        table.setSelectionForeground(Color.WHITE);
         table.setGridColor(new Color(230, 230, 230));
+        table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        JLabel label = (JLabel) super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+        label.setBackground(Color.BLACK);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setOpaque(true);
+        return label;
+    }
+});
 
         // Panel statistik
         JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -278,6 +297,7 @@ public class CrudKecamatanPanel extends JPanel {
 
         try {
             List<Kecamatan> kecamatanList = kecamatanDAO.getAllKecamatan();
+            int no = 1;
             for (Kecamatan kec : kecamatanList) {
                 int jmlDesa = kec.getJumlahDesa();
                 int jmlKelurahan = kec.getJumlahKelurahan();
@@ -290,7 +310,7 @@ public class CrudKecamatanPanel extends JPanel {
                 ImageIcon fotoIcon = loadImage(kec.getFotoUrl());
 
                 tableModel.addRow(new Object[] {
-                        kec.getIdKecamatan(),
+                        no++,
                         fotoIcon,
                         kec.getNamaKecamatan() != null ? kec.getNamaKecamatan() : "-",
                         kec.getAlamatKantor() != null ? kec.getAlamatKantor() : "-",
@@ -298,7 +318,8 @@ public class CrudKecamatanPanel extends JPanel {
                         kec.getNoHp() != null ? kec.getNoHp() : "-",
                         jmlDesa,
                         jmlKelurahan,
-                        total
+                        total,
+                        kec.getIdKecamatan()
                 });
             }
 
@@ -361,6 +382,7 @@ public class CrudKecamatanPanel extends JPanel {
 
         try {
             List<Kecamatan> kecamatanList = kecamatanDAO.searchKecamatan(keyword);
+            int no = 1;
             for (Kecamatan kec : kecamatanList) {
                 int jmlDesa = kec.getJumlahDesa();
                 int jmlKelurahan = kec.getJumlahKelurahan();
@@ -372,7 +394,7 @@ public class CrudKecamatanPanel extends JPanel {
                 ImageIcon fotoIcon = loadImage(kec.getFotoUrl());
 
                 tableModel.addRow(new Object[] {
-                        kec.getIdKecamatan(),
+                        no++,
                         fotoIcon,
                         kec.getNamaKecamatan() != null ? kec.getNamaKecamatan() : "-",
                         kec.getAlamatKantor() != null ? kec.getAlamatKantor() : "-",
@@ -380,7 +402,8 @@ public class CrudKecamatanPanel extends JPanel {
                         kec.getNoHp() != null ? kec.getNoHp() : "-",
                         jmlDesa,
                         jmlKelurahan,
-                        total
+                        total,
+                        kec.getIdKecamatan()
                 });
             }
 
@@ -446,7 +469,7 @@ public class CrudKecamatanPanel extends JPanel {
             return;
         }
 
-        int idKecamatan = (int) table.getValueAt(row, 0);
+        int idKecamatan = (int) table.getValueAt(row, 9);
         Kecamatan kecamatan = kecamatanDAO.getKecamatanById(idKecamatan);
 
         if (kecamatan == null) {
@@ -513,7 +536,7 @@ public class CrudKecamatanPanel extends JPanel {
             return;
         }
 
-        int idKecamatan = (int) table.getValueAt(row, 0);
+        int idKecamatan = (int) table.getValueAt(row, 9);
         String namaKecamatan = table.getValueAt(row, 2).toString();
         int jumlahDesa = (int) table.getValueAt(row, 6);
         int jumlahKelurahan = (int) table.getValueAt(row, 7);
@@ -588,7 +611,7 @@ public class CrudKecamatanPanel extends JPanel {
             return;
         }
 
-        int idKecamatan = (int) table.getValueAt(row, 0);
+        int idKecamatan = (int) table.getValueAt(row, 9);
         Kecamatan kec = kecamatanDAO.getKecamatanById(idKecamatan);
 
         if (kec != null) {
@@ -629,7 +652,6 @@ public class CrudKecamatanPanel extends JPanel {
                             "Nama Kecamatan       : %s\n" +
                             "Alamat Kantor        : %s\n" +
                             "Nama Pejabat         : %s\n" +
-                            "Alamat Rumah Kepala  : %s\n" +
                             "No HP                : %s\n" +
                             "%s" +
                             "\n=== STATISTIK WILAYAH ===\n" +
@@ -643,7 +665,6 @@ public class CrudKecamatanPanel extends JPanel {
                     kec.getNamaKecamatan() != null ? kec.getNamaKecamatan() : "-",
                     kec.getAlamatKantor() != null ? kec.getAlamatKantor() : "-",
                     kec.getNamaKepala() != null ? kec.getNamaKepala() : "-",
-                    kec.getAlamatRumahKepala() != null ? kec.getAlamatRumahKepala() : "-",
                     kec.getNoHp() != null ? kec.getNoHp() : "-",
                     imageInfo,
                     kec.getJumlahDesa(),
@@ -658,7 +679,7 @@ public class CrudKecamatanPanel extends JPanel {
             
             JTextArea textArea = new JTextArea(detail);
             textArea.setEditable(false);
-            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            textArea.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 12));
             
             JScrollPane textScrollPane = new JScrollPane(textArea);
             textScrollPane.setPreferredSize(new Dimension(600, 450));

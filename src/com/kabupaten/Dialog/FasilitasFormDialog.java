@@ -2,7 +2,10 @@ package com.kabupaten.Dialog;
 
 import com.kabupaten.model.Fasilitas;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.File;
+import java.nio.file.*;
 
 public class FasilitasFormDialog extends JDialog {
     private boolean confirmed = false;
@@ -11,6 +14,8 @@ public class FasilitasFormDialog extends JDialog {
     private JTextField txtNama, txtDinas, txtAlamat;
     private JTextArea txtKeterangan;
     private JComboBox<String> cmbJenis;
+    private JLabel lblFotoPreview;
+    private String selectedFotoPath;
 
     private static final String[] JENIS_LIST = {
         "Kesehatan", "Pendidikan", "Ibadah", "Olahraga",
@@ -31,7 +36,8 @@ public class FasilitasFormDialog extends JDialog {
     }
 
     private void initComponents(Fasilitas existing) {
-        setSize(500, 420);
+        setTitle(existing == null ? "Tambah Fasilitas" : "Edit Fasilitas");
+        setSize(550, 600);
         setLocationRelativeTo(getOwner());
         setResizable(false);
 
@@ -67,6 +73,24 @@ public class FasilitasFormDialog extends JDialog {
         keteranganScroll.setPreferredSize(new Dimension(280, 70));
         formPanel.add(keteranganScroll, gbc);
 
+        // Foto section
+        gbc.gridx = 0; gbc.gridy = 5;
+        formPanel.add(new JLabel("Foto:"), gbc);
+        gbc.gridx = 1;
+        
+        JPanel fotoActionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        fotoActionPanel.setOpaque(false);
+        JButton btnPilihFoto = new JButton("📷 Pilih Foto");
+        btnPilihFoto.addActionListener(e -> pilihFoto());
+        fotoActionPanel.add(btnPilihFoto);
+        formPanel.add(fotoActionPanel, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 6;
+        lblFotoPreview = new JLabel("Tidak ada foto", SwingConstants.CENTER);
+        lblFotoPreview.setPreferredSize(new Dimension(280, 150));
+        lblFotoPreview.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        formPanel.add(lblFotoPreview, gbc);
+
         // Isi data jika mode Edit
         if (existing != null) {
             this.fasilitas = existing;
@@ -75,6 +99,11 @@ public class FasilitasFormDialog extends JDialog {
             txtAlamat.setText(existing.getAlamat());
             txtKeterangan.setText(existing.getKeterangan());
             if (existing.getJenis() != null) cmbJenis.setSelectedItem(existing.getJenis());
+            
+            if (existing.getFotoUrl() != null && !existing.getFotoUrl().isEmpty()) {
+                selectedFotoPath = existing.getFotoUrl();
+                updatePreview(selectedFotoPath);
+            }
         }
 
         // Tombol
@@ -115,6 +144,59 @@ public class FasilitasFormDialog extends JDialog {
         panel.add(field, gbc);
     }
 
+    private void pilihFoto() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Pilih Foto Fasilitas");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "File Gambar (JPG, PNG, JPEG)", "jpg", "jpeg", "png");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                // Buat folder images/fasilitas jika belum ada
+                String projectPath = System.getProperty("user.dir");
+                File targetDir = new File(projectPath + "/images/fasilitas");
+                if (!targetDir.exists()) {
+                    targetDir.mkdirs();
+                }
+
+                // Buat nama file unik dengan timestamp
+                String fileName = System.currentTimeMillis() + "_" + selectedFile.getName();
+                Path targetPath = Paths.get(targetDir.getAbsolutePath(), fileName);
+
+                // Copy file ke folder images
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Simpan path relatif
+                selectedFotoPath = "images/fasilitas/" + fileName;
+
+                // Tampilkan preview
+                updatePreview(selectedFotoPath);
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal menyimpan gambar: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void updatePreview(String path) {
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage();
+            Image scaled = img.getScaledInstance(280, 150, Image.SCALE_SMOOTH);
+            lblFotoPreview.setIcon(new ImageIcon(scaled));
+            lblFotoPreview.setText("");
+        } catch (Exception e) {
+            lblFotoPreview.setText("Gagal memuat gambar");
+        }
+    }
+
     private void onSimpan() {
         String nama = txtNama.getText().trim();
         if (nama.isEmpty()) {
@@ -131,6 +213,7 @@ public class FasilitasFormDialog extends JDialog {
         fasilitas.setDinasTerkait(txtDinas.getText().trim());
         fasilitas.setAlamat(txtAlamat.getText().trim());
         fasilitas.setKeterangan(txtKeterangan.getText().trim());
+        fasilitas.setFotoUrl(selectedFotoPath);
 
         confirmed = true;
         dispose();

@@ -75,7 +75,7 @@ public class GuestDataFilterPanel extends JPanel {
 
         // --- Main TabbedPane ---
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tabbedPane.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
 
         // --- Tab 1: Warga Table ---
         tableModelWarga = new DefaultTableModel(
@@ -90,10 +90,11 @@ public class GuestDataFilterPanel extends JPanel {
         tableWarga.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableWarga.setRowHeight(35);
         tableWarga.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tableWarga.getTableHeader().setBackground(new Color(39, 82, 139));
+        tableWarga.getTableHeader().setBackground(Color.BLACK);
         tableWarga.getTableHeader().setForeground(Color.WHITE);
         tableWarga.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tableWarga.setSelectionBackground(new Color(79, 172, 254));
+        tableWarga.setSelectionForeground(Color.WHITE);
         tableWarga.setGridColor(new Color(230, 230, 230));
 
         JScrollPane scrollWarga = new JScrollPane(tableWarga);
@@ -111,7 +112,7 @@ public class GuestDataFilterPanel extends JPanel {
         panelWarga.add(footerWarga, BorderLayout.SOUTH);
 
         tabbedPane.addTab("👥 Data Warga", panelWarga);
-        tabbedPane.setFont(new Font("Arial Emoji", Font.PLAIN, 14));
+        tabbedPane.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
 
         // --- Tab 2: RT/RW Table ---
         tableModelRTRW = new DefaultTableModel(
@@ -126,10 +127,11 @@ public class GuestDataFilterPanel extends JPanel {
         tableRTRW.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableRTRW.setRowHeight(35);
         tableRTRW.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tableRTRW.getTableHeader().setBackground(new Color(39, 82, 139));
+        tableRTRW.getTableHeader().setBackground(Color.BLACK);
         tableRTRW.getTableHeader().setForeground(Color.WHITE);
         tableRTRW.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tableRTRW.setSelectionBackground(new Color(79, 172, 254));
+        tableRTRW.setSelectionForeground(Color.WHITE);
         tableRTRW.setGridColor(new Color(230, 230, 230));
 
         JScrollPane scrollRTRW = new JScrollPane(tableRTRW);

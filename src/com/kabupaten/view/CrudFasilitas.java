@@ -5,9 +5,11 @@ import com.kabupaten.dao.FasilitasDAO;
 import com.kabupaten.listener.DataChangeListener;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.io.File;
 import com.kabupaten.Dialog.FasilitasFormDialog;
 
 /**
@@ -45,11 +47,12 @@ public class CrudFasilitas extends JPanel {
         cmbJenisFilter.addItem("🌿 Lingkungan");
         cmbJenisFilter.addItem("📡 Telekomunikasi");
         cmbJenisFilter.addItem("⚡ Energi");
+        cmbJenisFilter.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
         searchPanel.add(cmbJenisFilter);
 
         searchPanel.add(new JLabel("  Pencarian:"));
         txtSearch = new JTextField(20);
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtSearch.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
         txtSearch.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 210, 228), 1, true),
                 BorderFactory.createEmptyBorder(7, 11, 7, 11)));
@@ -57,7 +60,7 @@ public class CrudFasilitas extends JPanel {
 
         // Tombol Cari
         JButton btnCari = new JButton("🔍 Cari");
-        btnCari.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCari.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         btnCari.setBackground(new Color(30, 60, 114));
         btnCari.setForeground(Color.WHITE);
         btnCari.setBorder(BorderFactory.createEmptyBorder(7, 15, 7, 15));
@@ -70,29 +73,57 @@ public class CrudFasilitas extends JPanel {
 
         // Tabel data Fasilitas
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "Nama Fasilitas", "Jenis", "Dinas Terkait", "Alamat", "Keterangan" },
+                new Object[] { "No", "Foto", "Nama Fasilitas", "Jenis", "Dinas Terkait", "Alamat", "Keterangan", "ID_HIDDEN" },
                 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 1) {
+                    return ImageIcon.class;
+                }
+                return super.getColumnClass(columnIndex);
+            }
         };
 
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(40);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.setRowHeight(85); // Tinggi baris untuk menampilkan gambar
+        table.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 12));
         table.setIntercellSpacing(new Dimension(10, 5));
         table.setShowVerticalLines(false);
         table.setGridColor(new Color(230, 240, 250));
+                table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        label.setBackground(Color.BLACK);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        label.setOpaque(true);
+        return label;
+    }
+});
 
         // Set lebar kolom
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(200);
-        table.getColumnModel().getColumn(2).setPreferredWidth(120);
-        table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        table.getColumnModel().getColumn(4).setPreferredWidth(250);
+        table.getColumnModel().getColumn(0).setPreferredWidth(40);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100); // Kolom Foto
+        table.getColumnModel().getColumn(2).setPreferredWidth(180);
+        table.getColumnModel().getColumn(3).setPreferredWidth(120);
+        table.getColumnModel().getColumn(4).setPreferredWidth(150);
         table.getColumnModel().getColumn(5).setPreferredWidth(200);
+        table.getColumnModel().getColumn(6).setPreferredWidth(180);
+
+        // Hide ID_HIDDEN column
+        table.getColumnModel().getColumn(7).setMinWidth(0);
+        table.getColumnModel().getColumn(7).setMaxWidth(0);
+        table.getColumnModel().getColumn(7).setPreferredWidth(0);
+
+        // Custom renderer untuk kolom gambar
+        table.getColumnModel().getColumn(1).setCellRenderer(new ImageRenderer());
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -108,6 +139,11 @@ public class CrudFasilitas extends JPanel {
         btnEdit = createStyledButton("✏️ Edit", new Color(33, 150, 243));
         btnHapus = createStyledButton("🗑️ Hapus", new Color(244, 67, 54));
         btnDetail = createStyledButton("📋 Detail", new Color(0, 128, 128));
+
+        btnTambah.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        btnEdit.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        btnHapus.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        btnDetail.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         
         // Export Button
         JButton btnExport = createStyledButton("📊 Export Data", new Color(40, 167, 69));
@@ -120,9 +156,9 @@ public class CrudFasilitas extends JPanel {
         buttonPanel.add(btnExport);
 
         // UI Polish - Table Header
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
+        table.getTableHeader().setBackground(Color.BLACK);
         table.getTableHeader().setForeground(Color.WHITE);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.getTableHeader().setFont(new Font("Segoe UI Emoji", Font.BOLD, 13));
         table.getTableHeader().setPreferredSize(new Dimension(0, 40));
         table.setSelectionBackground(new Color(79, 172, 254, 100));
         table.setSelectionForeground(new Color(30, 60, 114));
@@ -166,7 +202,7 @@ public class CrudFasilitas extends JPanel {
     // ============================================================
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
         button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
@@ -195,6 +231,16 @@ public class CrudFasilitas extends JPanel {
         dataChangeListeners.add(listener);
     }
 
+    /**
+     * Set panel to read-only mode (hide CRUD buttons)
+     */
+    public void setReadOnly(boolean readOnly) {
+        btnTambah.setVisible(!readOnly);
+        btnEdit.setVisible(!readOnly);
+        btnHapus.setVisible(!readOnly);
+        // btnDetail remains visible
+    }
+
     private void notifyDataChanged() {
         for (DataChangeListener listener : dataChangeListeners) {
             listener.onDataChanged();
@@ -212,14 +258,27 @@ public class CrudFasilitas extends JPanel {
         tableModel.setRowCount(0);
         try {
             List<Fasilitas> fasilitasList = fasilitasDAO.getAllFasilitas();
+            int no = 1;
             for (Fasilitas fasilitas : fasilitasList) {
+                ImageIcon thumbnail = null;
+                if (fasilitas.getFotoUrl() != null && !fasilitas.getFotoUrl().isEmpty()) {
+                    File imgFile = new File(fasilitas.getFotoUrl());
+                    if (imgFile.exists()) {
+                        ImageIcon icon = new ImageIcon(imgFile.getPath());
+                        Image img = icon.getImage().getScaledInstance(90, 75, Image.SCALE_SMOOTH);
+                        thumbnail = new ImageIcon(img);
+                    }
+                }
+
                 tableModel.addRow(new Object[] {
-                        fasilitas.getIdFasilitas(),
+                        no++,
+                        thumbnail,
                         fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
                         fasilitas.getJenis() != null ? getJenisIcon(fasilitas.getJenis()) + " " + fasilitas.getJenis() : "-",
                         fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
                         fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
-                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-"
+                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-",
+                        fasilitas.getIdFasilitas()
                 });
             }
         } catch (Exception e) {
@@ -283,13 +342,28 @@ public class CrudFasilitas extends JPanel {
                     }
                 }
 
+                // Gunakan nomor urut 1, 2, 3...
+                int no = tableModel.getRowCount() + 1;
+                
+                ImageIcon thumbnail = null;
+                if (fasilitas.getFotoUrl() != null && !fasilitas.getFotoUrl().isEmpty()) {
+                    File imgFile = new File(fasilitas.getFotoUrl());
+                    if (imgFile.exists()) {
+                        ImageIcon icon = new ImageIcon(imgFile.getPath());
+                        Image img = icon.getImage().getScaledInstance(90, 75, Image.SCALE_SMOOTH);
+                        thumbnail = new ImageIcon(img);
+                    }
+                }
+
                 tableModel.addRow(new Object[] {
-                        fasilitas.getIdFasilitas(),
+                        no,
+                        thumbnail,
                         fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
                         fasilitas.getJenis() != null ? getJenisIcon(fasilitas.getJenis()) + " " + fasilitas.getJenis() : "-",
                         fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
                         fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
-                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-"
+                        fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-",
+                        fasilitas.getIdFasilitas()
                 });
             }
         } catch (Exception e) {
@@ -350,7 +424,8 @@ public class CrudFasilitas extends JPanel {
             return;
         }
 
-        int idFasilitas = (int) table.getValueAt(row, 0);
+        // Ambil ID asli dari kolom tersembunyi
+        int idFasilitas = (int) tableModel.getValueAt(row, 7);
         Fasilitas fasilitas = fasilitasDAO.getFasilitasById(idFasilitas);
 
         if (fasilitas == null) {
@@ -410,8 +485,8 @@ public class CrudFasilitas extends JPanel {
             return;
         }
 
-        int idFasilitas = (int) table.getValueAt(row, 0);
-        String namaFasilitas = table.getValueAt(row, 1).toString();
+        String namaFasilitas = table.getValueAt(row, 2).toString(); // Nama di kolom 2
+        int idFasilitas = (int) tableModel.getValueAt(row, 7); // ID di hidden kolom 7
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Apakah Anda yakin ingin menghapus fasilitas:\n" + namaFasilitas + "?",
@@ -459,7 +534,7 @@ public class CrudFasilitas extends JPanel {
             return;
         }
 
-        int idFasilitas = (int) table.getValueAt(row, 0);
+        int idFasilitas = (int) tableModel.getValueAt(row, 7);
         Fasilitas fasilitas = fasilitasDAO.getFasilitasById(idFasilitas);
 
         if (fasilitas != null) {
@@ -491,8 +566,26 @@ public class CrudFasilitas extends JPanel {
             textArea.setBackground(new Color(250, 250, 252));
             textArea.setMargin(new Insets(15, 15, 15, 15));
 
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(600, 450));
+            JPanel detailPanel = new JPanel(new BorderLayout(10, 10));
+            detailPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+
+            // Tampilkan foto jika ada
+            if (fasilitas.getFotoUrl() != null && !fasilitas.getFotoUrl().isEmpty()) {
+                try {
+                    ImageIcon icon = new ImageIcon(fasilitas.getFotoUrl());
+                    Image img = icon.getImage();
+                    // Scale image to fit
+                    Image scaled = img.getScaledInstance(300, 200, Image.SCALE_SMOOTH);
+                    JLabel lblFoto = new JLabel(new ImageIcon(scaled));
+                    lblFoto.setBorder(BorderFactory.createTitledBorder("Foto Fasilitas"));
+                    detailPanel.add(lblFoto, BorderLayout.EAST);
+                } catch (Exception e) {
+                    System.err.println("Gagal memuat foto detail: " + e.getMessage());
+                }
+            }
+
+            JScrollPane scrollPane = new JScrollPane(detailPanel);
+            scrollPane.setPreferredSize(new Dimension(850, 450));
 
             JOptionPane.showMessageDialog(this,
                     scrollPane,
@@ -545,6 +638,31 @@ public class CrudFasilitas extends JPanel {
                     "Error export data: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // ============================================================
+    // INNER CLASS: Image Renderer
+    // ============================================================
+    class ImageRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            
+            if (value instanceof ImageIcon) {
+                JLabel label = new JLabel((ImageIcon) value);
+                label.setHorizontalAlignment(JLabel.CENTER);
+                if (isSelected) {
+                    label.setOpaque(true);
+                    label.setBackground(table.getSelectionBackground());
+                }
+                return label;
+            }
+            
+            JLabel label = new JLabel("Beban...");
+            if (value == null) label.setText("No Image");
+            label.setHorizontalAlignment(JLabel.CENTER);
+            return label;
         }
     }
 }

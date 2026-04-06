@@ -7,18 +7,20 @@ public class Fasilitas {
     private String dinasTerkait;
     private String alamat;
     private String keterangan;
+    private String fotoUrl;
     private String createdAt;
     private String updatedAt;
 
     public Fasilitas() {}
 
     public Fasilitas(String namaFasilitas, String jenis, String dinasTerkait,
-                     String alamat, String keterangan) {
+                     String alamat, String keterangan, String fotoUrl) {
         this.namaFasilitas = namaFasilitas;
         this.jenis = jenis;
         this.dinasTerkait = dinasTerkait;
         this.alamat = alamat;
         this.keterangan = keterangan;
+        this.fotoUrl = fotoUrl;
     }
 
     // Getters & Setters
@@ -39,6 +41,9 @@ public class Fasilitas {
 
     public String getKeterangan() { return keterangan; }
     public void setKeterangan(String keterangan) { this.keterangan = keterangan; }
+
+    public String getFotoUrl() { return fotoUrl; }
+    public void setFotoUrl(String fotoUrl) { this.fotoUrl = fotoUrl; }
 
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }

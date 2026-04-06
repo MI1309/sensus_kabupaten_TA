@@ -38,7 +38,7 @@ public class WargaDAO {
                 "FROM warga w " +
                 "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
-                "WHERE w.nik LIKE ? OR w.nama_lengkap LIKE ? OR w.alamat LIKE ? OR d.nama_desa LIKE ? OR k.nama_kecamatan LIKE ?";
+                "WHERE w.nik LIKE ? OR w.nama_lengkap LIKE ? OR w.alamat LIKE ? OR w.tempat_lahir LIKE ? OR d.nama_desa LIKE ? OR k.nama_kecamatan LIKE ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String k = "%" + keyword + "%";
             stmt.setString(1, k);
@@ -46,6 +46,7 @@ public class WargaDAO {
             stmt.setString(3, k);
             stmt.setString(4, k);
             stmt.setString(5, k);
+            stmt.setString(6, k);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToWarga(rs));
@@ -133,6 +134,25 @@ public class WargaDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Warga getWargaByNik(String nik) {
+        String sql = "SELECT w.*, d.nama_desa, k.nama_kecamatan " +
+                "FROM warga w " +
+                "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
+                "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                "WHERE w.nik=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, nik);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToWarga(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public Warga getWargaById(int id) {

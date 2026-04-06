@@ -253,11 +253,15 @@ public class dashboard_bupati extends JFrame {
         CrudWargaPanel wargaPanel = new CrudWargaPanel();
         wargaPanel.setReadOnly(true);
 
+        CrudFasilitas fasilitasPanel = new CrudFasilitas();
+        fasilitasPanel.setReadOnly(true);
+
         tabbedPane.addTab("Kecamatan", kecPanel);
         tabbedPane.addTab("Desa", desaPanel);
         tabbedPane.addTab("RT/RW", rtrwPanel);
         // tabbedPane.addTab("Ketua RT/RW", new CrudKetuaRTRWPanel());
         tabbedPane.addTab("Warga", wargaPanel);
+        tabbedPane.addTab("Fasilitas", fasilitasPanel);
 
         return tabbedPane;
     }
@@ -275,6 +279,8 @@ public class dashboard_bupati extends JFrame {
                 return "🏘️"; // RT/RW
             case 4:
                 return "👥"; // Warga
+            case 5:
+                return "🏢"; // Fasilitas
             default:
                 return "📋";
         }
@@ -295,10 +301,7 @@ public class dashboard_bupati extends JFrame {
         lblCopyright.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblCopyright.setForeground(new Color(108, 117, 125));
 
-        // Right side - Developer info
-        JLabel lblDeveloper = new JLabel("Developed by Imron");
-        lblDeveloper.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        lblDeveloper.setForeground(new Color(108, 117, 125));
+        // Right side (Empty now)
 
         // Center - Status
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
@@ -318,7 +321,6 @@ public class dashboard_bupati extends JFrame {
 
         footerPanel.add(lblCopyright, BorderLayout.WEST);
         footerPanel.add(statusPanel, BorderLayout.CENTER);
-        footerPanel.add(lblDeveloper, BorderLayout.EAST);
 
         return footerPanel;
     }

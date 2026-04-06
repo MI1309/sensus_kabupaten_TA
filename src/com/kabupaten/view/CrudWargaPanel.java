@@ -1,12 +1,15 @@
 package com.kabupaten.view;
 
 import com.kabupaten.dao.DesaDAO;
+import com.kabupaten.dao.KecamatanDAO;
 import com.kabupaten.dao.WargaDAO;
 import com.kabupaten.model.Desa;
+import com.kabupaten.model.Kecamatan;
 import com.kabupaten.model.Warga;
 import com.kabupaten.util.ValidationUtils;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Date;
@@ -15,6 +18,7 @@ import java.util.List;
 public class CrudWargaPanel extends JPanel {
     private WargaDAO wargaDAO = new WargaDAO();
     private DesaDAO desaDAO = new DesaDAO();
+    private KecamatanDAO kecamatanDAO = new KecamatanDAO();
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
@@ -33,7 +37,7 @@ public class CrudWargaPanel extends JPanel {
 
         // Tabel
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "NIK", "Nama Lengkap", "L/P", "Desa", "Alamat" }, 0) {
+                new Object[] { "No", "NIK", "Nama Lengkap", "L/P", "Desa", "Alamat", "ID_HIDDEN" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -44,6 +48,23 @@ public class CrudWargaPanel extends JPanel {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setRowHeight(35); // Taller rows
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        label.setBackground(Color.BLACK);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setOpaque(true);
+        return label;
+    }
+});
+
+        // Hide ID_HIDDEN column
+        table.getColumnModel().getColumn(6).setMinWidth(0);
+        table.getColumnModel().getColumn(6).setMaxWidth(0);
+        table.getColumnModel().getColumn(6).setPreferredWidth(0);
+
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         // Panel tombol CRUD
@@ -75,10 +96,11 @@ public class CrudWargaPanel extends JPanel {
         buttonPanel.add(btnExport);
 
         // UI Polish - Table
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
+        table.getTableHeader().setBackground(Color.BLACK);
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.setSelectionBackground(new Color(79, 172, 254));
+        table.setSelectionForeground(Color.WHITE);
         table.setGridColor(new Color(230, 230, 230));
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -88,7 +110,7 @@ public class CrudWargaPanel extends JPanel {
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row != -1) {
-                int id = (int) table.getValueAt(row, 0);
+                int id = (int) table.getValueAt(row, 6);
                 showForm(wargaDAO.getWargaById(id));
             } else {
                 JOptionPane.showMessageDialog(this, "Pilih data yang akan diedit!");
@@ -127,9 +149,11 @@ public class CrudWargaPanel extends JPanel {
     private void refreshTable() {
         tableModel.setRowCount(0);
         List<Warga> list = wargaDAO.getAllWarga();
+        int no = 1;
         for (Warga w : list) {
             tableModel.addRow(new Object[] {
-                    w.getIdWarga(), w.getNik(), w.getNamaLengkap(), w.getJenisKelamin(), w.getNamaDesa(), w.getAlamat()
+                    no++, w.getNik(), w.getNamaLengkap(), w.getJenisKelamin(), w.getNamaDesa(), w.getAlamat(),
+                    w.getIdWarga()
             });
         }
     }
@@ -138,32 +162,77 @@ public class CrudWargaPanel extends JPanel {
         String keyword = txtSearch.getText().trim();
         tableModel.setRowCount(0);
         List<Warga> list = wargaDAO.searchWarga(keyword);
+        int no = 1;
         for (Warga w : list) {
             tableModel.addRow(new Object[] {
-                    w.getIdWarga(), w.getNik(), w.getNamaLengkap(), w.getJenisKelamin(), w.getNamaDesa(), w.getAlamat()
+                    no++, w.getNik(), w.getNamaLengkap(), w.getJenisKelamin(), w.getNamaDesa(), w.getAlamat(),
+                    w.getIdWarga()
             });
         }
     }
 
     private void showForm(Warga existing) {
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-        JTextField txtNik = new JTextField(existing != null ? existing.getNik() : "");
-        JTextField txtNama = new JTextField(existing != null ? existing.getNamaLengkap() : "");
+        JTextField txtNik = new JTextField(existing != null && existing.getNik() != null ? existing.getNik() : "");
+        JTextField txtNama = new JTextField(existing != null && existing.getNamaLengkap() != null ? existing.getNamaLengkap() : "");
+        
+        // Real-time validation
+        ValidationUtils.applyNumericFilter(txtNik, 16, "NIK");
+        ValidationUtils.applyNameFilter(txtNama, "Nama");
+
         JComboBox<String> cmbJK = new JComboBox<>(new String[] { "L", "P" });
-        if (existing != null)
+        if (existing != null && existing.getJenisKelamin() != null)
             cmbJK.setSelectedItem(existing.getJenisKelamin());
 
-        JTextField txtTempat = new JTextField(existing != null ? existing.getTempatLahir() : "");
-        JTextField txtTgl = new JTextField(existing != null ? existing.getTanggalLahir().toString() : "YYYY-MM-DD");
-        JTextField txtAlamat = new JTextField(existing != null ? existing.getAlamat() : "");
+        JTextField txtTempat = new JTextField(existing != null && existing.getTempatLahir() != null ? existing.getTempatLahir() : "");
+        String tglStr = (existing != null && existing.getTanggalLahir() != null) ? existing.getTanggalLahir().toString() : "YYYY-MM-DD";
+        JTextField txtTgl = new JTextField(tglStr);
+        JTextField txtAlamat = new JTextField(existing != null && existing.getAlamat() != null ? existing.getAlamat() : "");
 
-        List<Desa> desas = desaDAO.getAllDesa();
+        List<Kecamatan> kecamatans = kecamatanDAO.getAllKecamatan();
+        JComboBox<KecamatanItem> cmbKecamatan = new JComboBox<>();
         JComboBox<DesaItem> cmbDesa = new JComboBox<>();
-        for (Desa d : desas) {
-            DesaItem item = new DesaItem(d.getIdDesa(), d.getNamaDesa());
-            cmbDesa.addItem(item);
-            if (existing != null && existing.getIdDesa() == d.getIdDesa()) {
-                cmbDesa.setSelectedItem(item);
+
+        // Action listener for Kecamatan to filter Desa
+        cmbKecamatan.addActionListener(e -> {
+            KecamatanItem selected = (KecamatanItem) cmbKecamatan.getSelectedItem();
+            cmbDesa.removeAllItems();
+            if (selected != null) {
+                List<Desa> desas = desaDAO.getDesaByKecamatan(selected.id);
+                for (Desa d : desas) {
+                    cmbDesa.addItem(new DesaItem(d.getIdDesa(), d.getNamaDesa()));
+                }
+            }
+        });
+
+        // Load all Kecamatans
+        for (Kecamatan k : kecamatans) {
+            cmbKecamatan.addItem(new KecamatanItem(k.getIdKecamatan(), k.getNamaKecamatan()));
+        }
+
+        // Mode Edit: Pre-select Kecamatan and then Desa
+        if (existing != null) {
+            Desa d = desaDAO.getDesaById(existing.getIdDesa());
+            if (d != null) {
+                // Pre-select Kecamatan
+                for (int i = 0; i < cmbKecamatan.getItemCount(); i++) {
+                    if (cmbKecamatan.getItemAt(i).id == d.getIdKecamatan()) {
+                        cmbKecamatan.setSelectedIndex(i);
+                        break;
+                    }
+                }
+                // Pre-select Desa (cmbDesa should have been populated by the listener)
+                for (int i = 0; i < cmbDesa.getItemCount(); i++) {
+                    if (cmbDesa.getItemAt(i).id == existing.getIdDesa()) {
+                        cmbDesa.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+        } else {
+            // New entry: trigger first kecamatan to load desas
+            if (cmbKecamatan.getItemCount() > 0) {
+                cmbKecamatan.setSelectedIndex(0);
             }
         }
 
@@ -179,20 +248,23 @@ public class CrudWargaPanel extends JPanel {
         panel.add(txtTgl);
         panel.add(new JLabel("Alamat:"));
         panel.add(txtAlamat);
+        panel.add(new JLabel("Kecamatan:"));
+        panel.add(cmbKecamatan);
         panel.add(new JLabel("Desa:"));
         panel.add(cmbDesa);
 
         // Real-time input filtering
-        ValidationUtils.applyNumericFilter(txtNik, 16);
-        ValidationUtils.applyStringOnlyFilter(txtNama);
-        ValidationUtils.applyStringOnlyFilter(txtTempat);
+        ValidationUtils.applyNumericFilter(txtNik, 16, "NIK");
+        ValidationUtils.applyNameFilter(txtNama, "Nama Lengkap");
+        ValidationUtils.applyNameFilter(txtTempat, "Tempat Lahir");
 
         // Focus Traversal
         txtNik.addActionListener(e -> txtNama.requestFocus());
         txtNama.addActionListener(e -> txtTempat.requestFocus());
         txtTempat.addActionListener(e -> txtTgl.requestFocus());
         txtTgl.addActionListener(e -> txtAlamat.requestFocus());
-        txtAlamat.addActionListener(e -> cmbDesa.requestFocus());
+        txtAlamat.addActionListener(e -> cmbKecamatan.requestFocus());
+        cmbKecamatan.addActionListener(e -> cmbDesa.requestFocus());
 
         int result = JOptionPane.showConfirmDialog(this, panel, existing == null ? "Tambah Warga" : "Edit Warga",
                 JOptionPane.OK_CANCEL_OPTION);
@@ -218,8 +290,8 @@ public class CrudWargaPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Nama tidak boleh kosong!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                if (!nama.matches("[a-zA-Z\\s]*")) {
-                    JOptionPane.showMessageDialog(this, "Nama hanya boleh berisi huruf dan spasi!", "Error",
+                if (!nama.matches("[a-zA-Z\\s.,]*")) {
+                    JOptionPane.showMessageDialog(this, "Nama hanya boleh berisi huruf, spasi, titik, dan koma!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -262,7 +334,7 @@ public class CrudWargaPanel extends JPanel {
     private void hapusData() {
         int row = table.getSelectedRow();
         if (row != -1) {
-            int id = (int) table.getValueAt(row, 0);
+            int id = (int) table.getValueAt(row, 6);
             if (JOptionPane.showConfirmDialog(this, "Yakin hapus data ini?", "Konfirmasi",
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 if (wargaDAO.deleteWarga(id)) {
@@ -275,7 +347,7 @@ public class CrudWargaPanel extends JPanel {
     private void showDetail() {
         int row = table.getSelectedRow();
         if (row != -1) {
-            int id = (int) table.getValueAt(row, 0);
+            int id = (int) table.getValueAt(row, 6);
             Warga w = wargaDAO.getWargaById(id);
             if (w != null) {
                 String detail = String.format(
@@ -319,6 +391,28 @@ public class CrudWargaPanel extends JPanel {
         } else {
             JOptionPane.showMessageDialog(this, "Silakan pilih data untuk melihat detail!", "Peringatan",
                     JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private class KecamatanItem {
+        int id;
+        String nama;
+
+        KecamatanItem(int id, String nama) {
+            this.id = id;
+            this.nama = nama;
+        }
+
+        @Override
+        public String toString() {
+            return nama;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof KecamatanItem)
+                return ((KecamatanItem) o).id == id;
+            return false;
         }
     }
 

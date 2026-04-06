@@ -2,8 +2,10 @@ package com.kabupaten.view;
 
 import com.kabupaten.model.RTRW;
 import com.kabupaten.dao.RTRWDAO;
+import com.kabupaten.util.ValidationUtils;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
@@ -29,7 +31,7 @@ public class CrudRTRWPanel extends JPanel {
 
         // Tabel
         tableModel = new DefaultTableModel(
-                new Object[] { "ID", "Desa", "RW", "RT", "Nama Ketua", "Kontak", "Alamat" }, 0) {
+                new Object[] { "No", "Desa", "RW", "RT", "Nama Ketua", "Kontak", "Alamat", "ID_HIDDEN" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -40,6 +42,22 @@ public class CrudRTRWPanel extends JPanel {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setRowHeight(35); // Taller rows
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        label.setBackground(Color.BLACK);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setOpaque(true);
+        return label;
+    }
+});
+        // Hide ID_HIDDEN column
+        table.getColumnModel().getColumn(7).setMinWidth(0);
+        table.getColumnModel().getColumn(7).setMaxWidth(0);
+        table.getColumnModel().getColumn(7).setPreferredWidth(0);
+
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -72,10 +90,11 @@ public class CrudRTRWPanel extends JPanel {
         buttonPanel.add(btnExport);
 
         // UI Polish - Table
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
+        table.getTableHeader().setBackground(Color.BLACK);
         table.getTableHeader().setForeground(Color.WHITE);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.setSelectionBackground(new Color(79, 172, 254));
+        table.setSelectionForeground(Color.WHITE);
         table.setGridColor(new Color(230, 230, 230));
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -128,17 +147,19 @@ public class CrudRTRWPanel extends JPanel {
         Set<Integer> addedIds = new HashSet<>(); // Mencegah duplikat
 
         try {
+            int no = 1;
             for (RTRW rtrw : rtrwDAO.getAllRTRW()) {
                 // Cek apakah ID sudah ditambahkan
                 if (!addedIds.contains(rtrw.getIdRtrw())) {
                     tableModel.addRow(new Object[] {
-                            rtrw.getIdRtrw(),
+                            no++,
                             rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "Tidak Ada",
                             rtrw.getRw(),
                             rtrw.getRt(),
                             rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "-",
                             rtrw.getKontak() != null ? rtrw.getKontak() : "-",
-                            rtrw.getAlamat() != null ? rtrw.getAlamat() : "-"
+                            rtrw.getAlamat() != null ? rtrw.getAlamat() : "-",
+                            rtrw.getIdRtrw()
                     });
                     addedIds.add(rtrw.getIdRtrw());
                 }
@@ -163,17 +184,19 @@ public class CrudRTRWPanel extends JPanel {
         Set<Integer> addedIds = new HashSet<>(); // Mencegah duplikat
 
         try {
+            int no = 1;
             for (RTRW rtrw : rtrwDAO.searchRTRW(keyword)) {
                 // Cek apakah ID sudah ditambahkan
                 if (!addedIds.contains(rtrw.getIdRtrw())) {
                     tableModel.addRow(new Object[] {
-                            rtrw.getIdRtrw(),
+                            no++,
                             rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "Tidak Ada",
                             rtrw.getRw(),
                             rtrw.getRt(),
                             rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "-",
                             rtrw.getKontak() != null ? rtrw.getKontak() : "-",
-                            rtrw.getAlamat() != null ? rtrw.getAlamat() : "-"
+                            rtrw.getAlamat() != null ? rtrw.getAlamat() : "-",
+                            rtrw.getIdRtrw()
                     });
                     addedIds.add(rtrw.getIdRtrw());
                 }
@@ -285,6 +308,12 @@ public class CrudRTRWPanel extends JPanel {
         panel.add(new JLabel("Alamat:*"));
         panel.add(scrollAlamat);
 
+        // Real-time validation
+        ValidationUtils.applyNumericFilter(txtRT, 3, "RT");
+        ValidationUtils.applyNumericFilter(txtRW, 3, "RW");
+        ValidationUtils.applyNameFilter(txtNamaKetua, "Nama Ketua");
+        ValidationUtils.applyNumericFilter(txtKontak, 15, "Kontak");
+
         int result = JOptionPane.showConfirmDialog(
                 this,
                 panel,
@@ -394,7 +423,7 @@ public class CrudRTRWPanel extends JPanel {
             return;
         }
 
-        int id = (Integer) table.getValueAt(selectedRow, 0);
+        int id = (Integer) table.getValueAt(selectedRow, 7);
         RTRW rtrw = rtrwDAO.getRTRWById(id);
 
         if (rtrw == null) {
@@ -430,6 +459,12 @@ public class CrudRTRWPanel extends JPanel {
         panel.add(txtKontak);
         panel.add(new JLabel("Alamat:*"));
         panel.add(scrollAlamat);
+
+        // Real-time validation
+        ValidationUtils.applyNumericFilter(txtRT, 3, "RT");
+        ValidationUtils.applyNumericFilter(txtRW, 3, "RW");
+        ValidationUtils.applyNameFilter(txtNamaKetua, "Nama Ketua");
+        ValidationUtils.applyNumericFilter(txtKontak, 15, "Kontak");
 
         int result = JOptionPane.showConfirmDialog(
                 this,
@@ -544,7 +579,7 @@ public class CrudRTRWPanel extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            int id = (Integer) table.getValueAt(selectedRow, 0);
+            int id = (Integer) table.getValueAt(selectedRow, 7);
             try {
                 boolean success = rtrwDAO.deleteRTRW(id);
                 if (success) {
@@ -577,7 +612,7 @@ public class CrudRTRWPanel extends JPanel {
             return;
         }
 
-        int id = (Integer) table.getValueAt(selectedRow, 0);
+        int id = (Integer) table.getValueAt(selectedRow, 7);
         RTRW rtrw = rtrwDAO.getRTRWById(id);
 
         if (rtrw != null) {

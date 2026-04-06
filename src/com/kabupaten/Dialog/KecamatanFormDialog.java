@@ -17,7 +17,6 @@ public class KecamatanFormDialog extends JDialog {
     private JTextField txtNamaKecamatan;
     private JTextField txtAlamatKantor;
     private JTextField txtNamaKepala;
-    private JTextField txtAlamatRumahKepala;
     private JTextField txtNoHp;
     private JLabel lblFotoPreview;
     private JButton btnPilihFoto;
@@ -78,19 +77,10 @@ public class KecamatanFormDialog extends JDialog {
         txtNamaKepala = new JTextField(20);
         formPanel.add(txtNamaKepala, gbc);
 
-        // Alamat Rumah Kepala
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.NONE;
-        formPanel.add(new JLabel("Alamat Rumah Kepala:"), gbc);
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        txtAlamatRumahKepala = new JTextField(20);
-        formPanel.add(txtAlamatRumahKepala, gbc);
 
         // No HP
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.NONE;
         formPanel.add(new JLabel("No HP:"), gbc);
         gbc.gridx = 1;
@@ -100,7 +90,7 @@ public class KecamatanFormDialog extends JDialog {
 
         // Pilih Foto
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.NONE;
         formPanel.add(new JLabel("Foto Kecamatan:"), gbc);
         gbc.gridx = 1;
@@ -125,9 +115,9 @@ public class KecamatanFormDialog extends JDialog {
         add(formPanel, BorderLayout.CENTER);
 
         // Real-time input filtering
-        ValidationUtils.applyStringOnlyFilter(txtNamaKecamatan);
-        ValidationUtils.applyStringOnlyFilter(txtNamaKepala);
-        ValidationUtils.applyNumericFilter(txtNoHp, 15);
+        ValidationUtils.applyNameFilter(txtNamaKecamatan, "Nama Kecamatan");
+        ValidationUtils.applyNameFilter(txtNamaKepala, "Nama Pejabat/Camat");
+        ValidationUtils.applyNumericFilter(txtNoHp, 15, "No HP");
 
         // Event pilih foto
         btnPilihFoto.addActionListener(e -> pilihFoto());
@@ -164,8 +154,7 @@ public class KecamatanFormDialog extends JDialog {
         // Tambahkan ActionListener untuk Enter key
         txtNamaKecamatan.addActionListener(e -> txtAlamatKantor.requestFocus());
         txtAlamatKantor.addActionListener(e -> txtNamaKepala.requestFocus());
-        txtNamaKepala.addActionListener(e -> txtAlamatRumahKepala.requestFocus());
-        txtAlamatRumahKepala.addActionListener(e -> txtNoHp.requestFocus());
+        txtNamaKepala.addActionListener(e -> txtNoHp.requestFocus());
         txtNoHp.addActionListener(e -> btnPilihFoto.requestFocus());
         btnPilihFoto.addActionListener(e -> pilihFoto());
 
@@ -223,7 +212,6 @@ public class KecamatanFormDialog extends JDialog {
             txtNamaKecamatan.setText(kecamatan.getNamaKecamatan() != null ? kecamatan.getNamaKecamatan() : "");
             txtAlamatKantor.setText(kecamatan.getAlamatKantor() != null ? kecamatan.getAlamatKantor() : "");
             txtNamaKepala.setText(kecamatan.getNamaKepala() != null ? kecamatan.getNamaKepala() : "");
-            txtAlamatRumahKepala.setText(kecamatan.getAlamatRumahKepala() != null ? kecamatan.getAlamatRumahKepala() : "");
             txtNoHp.setText(kecamatan.getNoHp() != null ? kecamatan.getNoHp() : "");
             
             // Load preview foto jika ada
@@ -277,11 +265,6 @@ public class KecamatanFormDialog extends JDialog {
             return false;
         }
 
-        if (txtAlamatRumahKepala.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Alamat Rumah Kepala tidak boleh kosong!", "Validasi Error", JOptionPane.WARNING_MESSAGE);
-            txtAlamatRumahKepala.requestFocus();
-            return false;
-        }
 
         String noHp = txtNoHp.getText().trim();
         if (noHp.isEmpty()) {
@@ -303,7 +286,6 @@ public class KecamatanFormDialog extends JDialog {
         kecamatan.setNamaKecamatan(txtNamaKecamatan.getText().trim());
         kecamatan.setAlamatKantor(txtAlamatKantor.getText().trim());
         kecamatan.setNamaKepala(txtNamaKepala.getText().trim());
-        kecamatan.setAlamatRumahKepala(txtAlamatRumahKepala.getText().trim());
         kecamatan.setNoHp(txtNoHp.getText().trim());
         kecamatan.setFotoUrl(selectedFotoPath); // Simpan path relatif
 

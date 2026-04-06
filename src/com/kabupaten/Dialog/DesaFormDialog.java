@@ -8,6 +8,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.util.List;
 
 public class DesaFormDialog extends JDialog {
@@ -16,8 +22,10 @@ public class DesaFormDialog extends JDialog {
     private JComboBox<String> cmbJenis;
     private JTextField txtAlamatKantor;
     private JTextField txtNamaKepala;
-    private JTextField txtAlamatRumahKepala;
     private JTextField txtNoHp;
+    private JLabel lblFotoPreview;
+    private JButton btnPilihFoto;
+    private String selectedFotoPath = ""; // Path relatif gambar
 
     private KecamatanDAO kecamatanDAO;
     private boolean confirmed = false;
@@ -98,25 +106,39 @@ public class DesaFormDialog extends JDialog {
         txtNamaKepala = new JTextField(20);
         formPanel.add(txtNamaKepala, gbc);
 
-        // Alamat Rumah Kepala
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.fill = GridBagConstraints.NONE;
-        formPanel.add(new JLabel("Alamat Rumah Kepala:"), gbc);
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        txtAlamatRumahKepala = new JTextField(20);
-        formPanel.add(txtAlamatRumahKepala, gbc);
 
         // No HP
         gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridy = 5;
         formPanel.add(new JLabel("No HP:"), gbc);
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         txtNoHp = new JTextField(20);
         formPanel.add(txtNoHp, gbc);
+
+        // Pilih Foto
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.fill = GridBagConstraints.NONE;
+        formPanel.add(new JLabel("Foto Desa:"), gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JPanel fotoPanel = new JPanel(new BorderLayout(5, 5));
+        btnPilihFoto = new JButton("📁 Pilih Gambar");
+        btnPilihFoto.setBackground(new Color(30, 60, 114));
+        btnPilihFoto.setForeground(Color.WHITE);
+        btnPilihFoto.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        lblFotoPreview = new JLabel("Belum ada gambar", SwingConstants.CENTER);
+        lblFotoPreview.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        lblFotoPreview.setForeground(Color.GRAY);
+        lblFotoPreview.setPreferredSize(new Dimension(150, 80));
+        lblFotoPreview.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+
+        fotoPanel.add(btnPilihFoto, BorderLayout.NORTH);
+        fotoPanel.add(lblFotoPreview, BorderLayout.CENTER);
+        formPanel.add(fotoPanel, gbc);
 
         add(formPanel, BorderLayout.CENTER);
 
@@ -135,9 +157,9 @@ public class DesaFormDialog extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Real-time input filtering
-        ValidationUtils.applyStringOnlyFilter(txtNamaDesa);
-        ValidationUtils.applyStringOnlyFilter(txtNamaKepala);
-        ValidationUtils.applyNumericFilter(txtNoHp, 15);
+        ValidationUtils.applyNameFilter(txtNamaDesa, "Nama Desa");
+        ValidationUtils.applyNameFilter(txtNamaKepala, "Nama Kepala Desa");
+        ValidationUtils.applyNumericFilter(txtNoHp, 15, "No HP");
 
         // Event handlers untuk tombol
         ActionListener simpanAction = new ActionListener() {
@@ -164,12 +186,58 @@ public class DesaFormDialog extends JDialog {
         // Tambahkan ActionListener untuk Enter key pada text field (Focus Traversal)
         txtNamaDesa.addActionListener(e -> txtAlamatKantor.requestFocus());
         txtAlamatKantor.addActionListener(e -> txtNamaKepala.requestFocus());
-        txtNamaKepala.addActionListener(e -> txtAlamatRumahKepala.requestFocus());
-        txtAlamatRumahKepala.addActionListener(e -> txtNoHp.requestFocus());
+        txtNamaKepala.addActionListener(e -> txtNoHp.requestFocus());
         txtNoHp.addActionListener(simpanAction); // Terakhir baru simpan
+
+        // Event pilih foto
+        btnPilihFoto.addActionListener(e -> pilihFoto());
 
         pack();
         setLocationRelativeTo(getParent());
+    }
+
+    private void pilihFoto() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Pilih Foto Desa");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "File Gambar (JPG, PNG, JPEG)", "jpg", "jpeg", "png");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                // Buat folder images/desa jika belum ada
+                String projectPath = System.getProperty("user.dir");
+                File targetDir = new File(projectPath + "/images/desa");
+                if (!targetDir.exists()) {
+                    targetDir.mkdirs();
+                }
+
+                // Buat nama file unik dengan timestamp
+                String fileName = System.currentTimeMillis() + "_" + selectedFile.getName();
+                Path targetPath = Paths.get(targetDir.getAbsolutePath(), fileName);
+
+                // Copy file ke folder images
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Simpan path relatif
+                selectedFotoPath = "images/desa/" + fileName;
+
+                // Tampilkan preview
+                ImageIcon icon = new ImageIcon(selectedFile.getPath());
+                Image scaled = icon.getImage().getScaledInstance(140, 70, Image.SCALE_SMOOTH);
+                lblFotoPreview.setIcon(new ImageIcon(scaled));
+                lblFotoPreview.setText("");
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal menyimpan gambar: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
     }
 
     private void loadKecamatanList() {
@@ -198,8 +266,29 @@ public class DesaFormDialog extends JDialog {
 
             txtAlamatKantor.setText(desa.getAlamatKantor() != null ? desa.getAlamatKantor() : "");
             txtNamaKepala.setText(desa.getNamaKepala() != null ? desa.getNamaKepala() : "");
-            txtAlamatRumahKepala.setText(desa.getAlamatRumahKepala() != null ? desa.getAlamatRumahKepala() : "");
             txtNoHp.setText(desa.getNoHp() != null ? desa.getNoHp() : "");
+
+            // Load preview foto jika ada
+            String fotoUrl = desa.getFotoUrl();
+            if (fotoUrl != null && !fotoUrl.isEmpty()) {
+                selectedFotoPath = fotoUrl;
+                try {
+                    File imgFile = new File(fotoUrl);
+                    if (!imgFile.exists()) {
+                        String projectPath = System.getProperty("user.dir");
+                        imgFile = new File(projectPath + "/" + fotoUrl);
+                    }
+
+                    if (imgFile.exists()) {
+                        ImageIcon icon = new ImageIcon(imgFile.getPath());
+                        Image scaled = icon.getImage().getScaledInstance(140, 70, Image.SCALE_SMOOTH);
+                        lblFotoPreview.setIcon(new ImageIcon(scaled));
+                        lblFotoPreview.setText("");
+                    }
+                } catch (Exception e) {
+                    lblFotoPreview.setText("Gambar tidak ditemukan");
+                }
+            }
         }
     }
 
@@ -225,9 +314,9 @@ public class DesaFormDialog extends JDialog {
             return false;
         }
 
-        if (!namaDesa.matches("[a-zA-Z\\s]*")) {
+        if (!namaDesa.matches("[a-zA-Z0-9\\s.,\\-()]*")) {
             JOptionPane.showMessageDialog(this,
-                    "Nama Desa hanya boleh berisi huruf dan spasi!",
+                    "Nama Desa mengandung karakter yang tidak valid!",
                     "Validasi Error",
                     JOptionPane.WARNING_MESSAGE);
             txtNamaDesa.requestFocus();
@@ -236,9 +325,9 @@ public class DesaFormDialog extends JDialog {
 
         // Validasi Nama Kepala
         String namaKepala = txtNamaKepala.getText().trim();
-        if (!namaKepala.isEmpty() && !namaKepala.matches("[a-zA-Z\\s]*")) {
+        if (!namaKepala.isEmpty() && !namaKepala.matches("[a-zA-Z0-9\\s.,\\-()]*")) {
             JOptionPane.showMessageDialog(this,
-                    "Nama Kepala hanya boleh berisi huruf dan spasi!",
+                    "Nama Kepala mengandung karakter yang tidak valid!",
                     "Validasi Error",
                     JOptionPane.WARNING_MESSAGE);
             txtNamaKepala.requestFocus();
@@ -289,8 +378,8 @@ public class DesaFormDialog extends JDialog {
         desa.setJenis((String) cmbJenis.getSelectedItem());
         desa.setAlamatKantor(txtAlamatKantor.getText().trim());
         desa.setNamaKepala(txtNamaKepala.getText().trim());
-        desa.setAlamatRumahKepala(txtAlamatRumahKepala.getText().trim());
         desa.setNoHp(txtNoHp.getText().trim());
+        desa.setFotoUrl(selectedFotoPath);
     }
 
     public boolean isConfirmed() {

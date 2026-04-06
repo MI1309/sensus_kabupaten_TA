@@ -26,9 +26,9 @@ public class LoadingScreen extends JFrame {
     // Konstanta
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
-    private static final Color PRIMARY_COLOR = new Color(30, 60, 114);
-    private static final Color SECONDARY_COLOR = new Color(42, 82, 152);
-    private static final Color ACCENT_COLOR = new Color(79, 172, 254);
+    private static final Color PRIMARY_COLOR = new Color(15, 32, 67);    // Deep Midnight Blue
+    private static final Color SECONDARY_COLOR = new Color(34, 69, 128);  // Deep Royal Blue
+    private static final Color ACCENT_COLOR = new Color(0, 180, 255);     // Modern Vivid Blue
 
     // Komponen animasi
     private Timer animationTimer;

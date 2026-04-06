@@ -12,10 +12,10 @@ public class Desa {
     private String jenis; // ENUM: 'DESA' atau 'KELURAHAN'
     private String alamatKantor;
     private String namaKepala;
-    private String alamatRumahKepala;
     private String noHp;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String fotoUrl;
     
     // Field tambahan untuk relasi
     private String namaKecamatan;
@@ -26,32 +26,38 @@ public class Desa {
 
     // Constructor dengan parameter lengkap (tanpa ID untuk insert)
     public Desa(int idKecamatan, String namaDesa, String jenis, String alamatKantor,
-                String namaKepala, String alamatRumahKepala, String noHp) {
+                String namaKepala, String noHp) {
         this.idKecamatan = idKecamatan;
         this.namaDesa = namaDesa;
         this.jenis = jenis;
         this.alamatKantor = alamatKantor;
         this.namaKepala = namaKepala;
-        this.alamatRumahKepala = alamatRumahKepala;
         this.noHp = noHp;
     }
 
     // Constructor dengan semua field termasuk ID
     public Desa(int idDesa, int idKecamatan, String namaDesa, String jenis, 
-                String alamatKantor, String namaKepala, String alamatRumahKepala, String noHp) {
+                String alamatKantor, String namaKepala, String noHp) {
         this.idDesa = idDesa;
         this.idKecamatan = idKecamatan;
         this.namaDesa = namaDesa;
         this.jenis = jenis;
         this.alamatKantor = alamatKantor;
         this.namaKepala = namaKepala;
-        this.alamatRumahKepala = alamatRumahKepala;
         this.noHp = noHp;
     }
 
     // Getters and Setters
     public int getIdDesa() {
         return idDesa;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 
     public void setIdDesa(int idDesa) {
@@ -98,13 +104,6 @@ public class Desa {
         this.namaKepala = namaKepala;
     }
 
-    public String getAlamatRumahKepala() {
-        return alamatRumahKepala;
-    }
-
-    public void setAlamatRumahKepala(String alamatRumahKepala) {
-        this.alamatRumahKepala = alamatRumahKepala;
-    }
 
     public String getNoHp() {
         return noHp;
@@ -175,7 +174,6 @@ public class Desa {
                 ", jenis='" + jenis + '\'' +
                 ", alamatKantor='" + alamatKantor + '\'' +
                 ", namaKepala='" + namaKepala + '\'' +
-                ", alamatRumahKepala='" + alamatRumahKepala + '\'' +
                 ", noHp='" + noHp + '\'' +
                 ", namaKecamatan='" + namaKecamatan + '\'' +
                 ", createdAt=" + createdAt +

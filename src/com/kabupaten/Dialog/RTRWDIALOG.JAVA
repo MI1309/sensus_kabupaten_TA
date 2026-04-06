@@ -99,15 +99,13 @@ public class RTRWFormDialog extends JDialog {
         JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
         formPanel.add(scrollAlamat, gbc);
 
-        formPanel.add(scrollAlamat, gbc);
-
         add(formPanel, BorderLayout.CENTER);
 
         // Real-time input filtering
-        ValidationUtils.applyNumericFilter(txtRT, 3);
-        ValidationUtils.applyNumericFilter(txtRW, 3);
-        ValidationUtils.applyStringOnlyFilter(txtNamaKetua);
-        ValidationUtils.applyNumericFilter(txtKontak, 15);
+        ValidationUtils.applyNumericFilter(txtRT, 3, "RT");
+        ValidationUtils.applyNumericFilter(txtRW, 3, "RW");
+        ValidationUtils.applyNameFilter(txtNamaKetua, "Nama Ketua");
+        ValidationUtils.applyNumericFilter(txtKontak, 15, "Kontak");
 
         // Panel tombol
         JPanel buttonPanel = new JPanel(new FlowLayout());
@@ -219,8 +217,8 @@ public class RTRWFormDialog extends JDialog {
         }
 
         String namaKetua = txtNamaKetua.getText().trim();
-        if (!namaKetua.isEmpty() && !namaKetua.matches("[a-zA-Z\\s]*")) {
-            JOptionPane.showMessageDialog(this, "Nama Ketua hanya boleh berisi huruf dan spasi!");
+        if (!namaKetua.isEmpty() && !namaKetua.matches("[a-zA-Z0-9\\s.,\\-()]*")) {
+            JOptionPane.showMessageDialog(this, "Nama Ketua mengandung karakter yang tidak valid!");
             txtNamaKetua.requestFocus();
             return false;
         }

@@ -44,7 +44,7 @@ public class FasilitasDAO {
 
     // CREATE
     public boolean addFasilitas(Fasilitas f) {
-        String sql = "INSERT INTO fasilitas (nama_fasilitas, jenis, dinas_terkait, alamat, keterangan) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO fasilitas (nama_fasilitas, jenis, dinas_terkait, alamat, keterangan, foto_url) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, f.getNamaFasilitas());
@@ -52,6 +52,7 @@ public class FasilitasDAO {
             ps.setString(3, f.getDinasTerkait());
             ps.setString(4, f.getAlamat());
             ps.setString(5, f.getKeterangan());
+            ps.setString(6, f.getFotoUrl());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -61,7 +62,7 @@ public class FasilitasDAO {
 
     // UPDATE
     public boolean updateFasilitas(Fasilitas f) {
-        String sql = "UPDATE fasilitas SET nama_fasilitas=?, jenis=?, dinas_terkait=?, alamat=?, keterangan=? WHERE id_fasilitas=?";
+        String sql = "UPDATE fasilitas SET nama_fasilitas=?, jenis=?, dinas_terkait=?, alamat=?, keterangan=?, foto_url=? WHERE id_fasilitas=?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, f.getNamaFasilitas());
@@ -69,7 +70,8 @@ public class FasilitasDAO {
             ps.setString(3, f.getDinasTerkait());
             ps.setString(4, f.getAlamat());
             ps.setString(5, f.getKeterangan());
-            ps.setInt(6, f.getIdFasilitas());
+            ps.setString(6, f.getFotoUrl());
+            ps.setInt(7, f.getIdFasilitas());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -99,6 +101,7 @@ public class FasilitasDAO {
         f.setDinasTerkait(rs.getString("dinas_terkait"));
         f.setAlamat(rs.getString("alamat"));
         f.setKeterangan(rs.getString("keterangan"));
+        f.setFotoUrl(rs.getString("foto_url"));
         f.setCreatedAt(rs.getString("created_at"));
         f.setUpdatedAt(rs.getString("updated_at"));
         return f;

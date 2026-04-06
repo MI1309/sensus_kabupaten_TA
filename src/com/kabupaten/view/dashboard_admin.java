@@ -322,10 +322,7 @@ public class dashboard_admin extends JFrame {
         lblCopyright.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblCopyright.setForeground(new Color(108, 117, 125));
 
-        // Right side - Developer info
-        JLabel lblDeveloper = new JLabel("Developed by Imron");
-        lblDeveloper.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        lblDeveloper.setForeground(new Color(108, 117, 125));
+        // Right side (Empty now)
 
         // Center - Status
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
@@ -345,7 +342,6 @@ public class dashboard_admin extends JFrame {
 
         footerPanel.add(lblCopyright, BorderLayout.WEST);
         footerPanel.add(statusPanel, BorderLayout.CENTER);
-        footerPanel.add(lblDeveloper, BorderLayout.EAST);
 
         return footerPanel;
     }

@@ -10,7 +10,6 @@ public class Kecamatan {
     private String namaKecamatan;
     private String alamatKantor;
     private String namaKepala;
-    private String alamatRumahKepala;
     private int jumlahPenduduk;
     private String noHp;
     private int jumlahDesa;
@@ -25,13 +24,12 @@ public class Kecamatan {
     
     // Constructor dengan parameter lengkap
     public Kecamatan(int idKecamatan, String namaKecamatan, String alamatKantor, 
-                     String namaKepala, String alamatRumahKepala, int jumlahPenduduk,
+                     String namaKepala, int jumlahPenduduk,
                      String noHp, int jumlahDesa, int jumlahKelurahan) {
         this.idKecamatan = idKecamatan;
         this.namaKecamatan = namaKecamatan;
         this.alamatKantor = alamatKantor;
         this.namaKepala = namaKepala;
-        this.alamatRumahKepala = alamatRumahKepala;
         this.jumlahPenduduk = jumlahPenduduk;
         this.noHp = noHp;
         this.jumlahDesa = jumlahDesa;
@@ -40,12 +38,11 @@ public class Kecamatan {
     
     // Constructor tanpa ID (untuk insert)
     public Kecamatan(String namaKecamatan, String alamatKantor, String namaKepala, 
-                     String alamatRumahKepala, int jumlahPenduduk, String noHp,
+                     int jumlahPenduduk, String noHp,
                      int jumlahDesa, int jumlahKelurahan) {
         this.namaKecamatan = namaKecamatan;
         this.alamatKantor = alamatKantor;
         this.namaKepala = namaKepala;
-        this.alamatRumahKepala = alamatRumahKepala;
         this.jumlahPenduduk = jumlahPenduduk;
         this.noHp = noHp;
         this.jumlahDesa = jumlahDesa;
@@ -88,13 +85,6 @@ public class Kecamatan {
         this.namaKepala = namaKepala;
     }
 
-    public String getAlamatRumahKepala() {
-        return alamatRumahKepala;
-    }
-
-    public void setAlamatRumahKepala(String alamatRumahKepala) {
-        this.alamatRumahKepala = alamatRumahKepala;
-    }
 
     public int getJumlahPenduduk() {
         return jumlahPenduduk;
@@ -157,7 +147,6 @@ public class Kecamatan {
                 ", namaKecamatan='" + namaKecamatan + '\'' +
                 ", alamatKantor='" + alamatKantor + '\'' +
                 ", namaKepala='" + namaKepala + '\'' +
-                ", alamatRumahKepala='" + alamatRumahKepala + '\'' +
                 ", jumlahPenduduk=" + jumlahPenduduk +
                 ", noHp='" + noHp + '\'' +
                 ", jumlahDesa=" + jumlahDesa +

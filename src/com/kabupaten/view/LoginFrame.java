@@ -33,11 +33,11 @@ public class LoginFrame extends JFrame {
     private JLabel lblPassword;
 
     // Warna tema dari loading screen
-    private static final Color PRIMARY_COLOR = new Color(30, 60, 114); // Biru tua
-    private static final Color SECONDARY_COLOR = new Color(42, 82, 152); // Biru sedang
-    private static final Color ACCENT_COLOR = new Color(79, 172, 254); // Biru muda/cyan
-    private static final Color CREAM_COLOR = new Color(255, 251, 245); // Cream untuk background
-    private static final Color GRAY_COLOR = new Color(108, 117, 125); // Abu-abu untuk tombol kembali
+    private static final Color PRIMARY_COLOR = new Color(15, 32, 67);    // Deep Midnight Blue
+    private static final Color SECONDARY_COLOR = new Color(34, 69, 128);  // Deep Royal Blue
+    private static final Color ACCENT_COLOR = new Color(0, 180, 255);     // Modern Vivid Blue
+    private static final Color CREAM_COLOR = new Color(250, 252, 255);    // Very light blue-ish white
+    private static final Color GRAY_COLOR = new Color(100, 110, 130);     // Modern Slate Gray
 
     public LoginFrame() {
         initComponents();
@@ -245,16 +245,16 @@ public class LoginFrame extends JFrame {
 
         // Header section
         JLabel welcomeLabel = new JLabel("Selamat Datang");
-        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         welcomeLabel.setForeground(PRIMARY_COLOR);
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(welcomeLabel);
 
-        formPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        formPanel.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        JLabel descLabel = new JLabel("Silakan login untuk mengakses sistem");
+        JLabel descLabel = new JLabel("Silakan masuk ke akun administrator Anda");
         descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descLabel.setForeground(new Color(100, 100, 120));
+        descLabel.setForeground(new Color(110, 120, 145));
         descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(descLabel);
 
@@ -342,20 +342,30 @@ public class LoginFrame extends JFrame {
         formPanel.add(comboPanel);
         formPanel.add(Box.createRigidArea(new Dimension(0, 35)));
 
-        // Button panel dengan 3 tombol: Kembali, MASUK, Kembali ke Dashboard Guest
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 12, 0));
+        // Panel Tombol menggunakan GridBagLayout agar lebih stabil
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
         buttonPanel.setOpaque(false);
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(0, 5, 0, 5); // Spasi antar tombol
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        btnLogin = createStyledButton("MASUK", ACCENT_COLOR);
+        btnLogin = createStyledButton("LOGIN SEKARANG", ACCENT_COLOR);
         btnExit = createGuestButton();
 
-        btnLogin.setPreferredSize(new Dimension(140, 42));
-        btnExit.setPreferredSize(new Dimension(140, 42));
+        // Ukuran tombol yang konsisten
+        Dimension btnSize = new Dimension(180, 45);
+        btnLogin.setPreferredSize(btnSize);
+        btnLogin.setMinimumSize(btnSize);
+        btnExit.setPreferredSize(new Dimension(140, 45));
+        btnExit.setMinimumSize(new Dimension(140, 45));
 
-        buttonPanel.add(btnLogin);
-        buttonPanel.add(btnExit);
+        gbc.gridx = 0;
+        buttonPanel.add(btnLogin, gbc);
+        
+        gbc.gridx = 1;
+        buttonPanel.add(btnExit, gbc);
 
         formPanel.add(buttonPanel);
         formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -399,12 +409,12 @@ public class LoginFrame extends JFrame {
     }
 
     private JButton createGuestButton() {
-        JButton guestButton = new JButton("Kembali");
+        JButton guestButton = new JButton("⬅️  BACK");
         guestButton.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
-        guestButton.setBackground(new Color(46, 125, 50)); // Hijau
+        guestButton.setBackground(new Color(110, 120, 145)); // Bold Slate Gray for visibility
         guestButton.setForeground(Color.WHITE);
         guestButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(35, 100, 40), 1),
+                BorderFactory.createLineBorder(new Color(80, 90, 110), 1),
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)));
         guestButton.setFocusPainted(false);
         guestButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -412,32 +422,23 @@ public class LoginFrame extends JFrame {
         guestButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                guestButton.setBackground(new Color(60, 150, 70));
+                guestButton.setBackground(new Color(80, 90, 110));
             }
             
             @Override
             public void mouseExited(MouseEvent e) {
-                guestButton.setBackground(new Color(46, 125, 50));
+                guestButton.setBackground(new Color(110, 120, 145));
             }
             
             @Override
             public void mousePressed(MouseEvent e) {
-                guestButton.setBackground(new Color(35, 100, 40));
+                guestButton.setBackground(new Color(60, 70, 90));
             }
         });
         
         guestButton.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this,
-                    "Apakah Anda ingin kembali ke Portal Informasi Publik?",
-                    "Konfirmasi",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
-            
-            if (confirm == JOptionPane.YES_OPTION) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> new dashboard_guest().setVisible(true));
-            }
+            this.dispose();
+            SwingUtilities.invokeLater(() -> new dashboard_guest().setVisible(true));
         });
         
         return guestButton;

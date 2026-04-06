@@ -13,11 +13,12 @@ import java.io.InputStream;
  * Banner Frame untuk tampilan awal aplikasi dengan tombol masuk
  */
 public class BannerFrame extends JFrame {
-    private static final Color PRIMARY_COLOR = new Color(30, 60, 114);
-    private static final Color SECONDARY_COLOR = new Color(42, 82, 152);
-    private static final Color ACCENT_COLOR = new Color(79, 172, 254);
-    private static final Color GOLD_COLOR = new Color(255, 215, 0);
-    private static final Color LIGHT_ACCENT = new Color(100, 190, 255);
+    private static final Color PRIMARY_COLOR = new Color(15, 32, 67);    // Deep Midnight Blue
+    private static final Color SECONDARY_COLOR = new Color(34, 69, 128);  // Deep Royal Blue
+    private static final Color ACCENT_COLOR = new Color(0, 180, 255);     // Modern Vivid Blue
+    private static final Color GOLD_COLOR = new Color(255, 215, 0);       // Gold
+    private static final Color GLASS_COLOR = new Color(255, 255, 255, 25); // Semi-transparent white
+    private static final Color GLASS_BORDER = new Color(255, 255, 255, 50); // Subtle border
     
     private JButton btnEnter;
     private Timer fadeTimer;
@@ -108,76 +109,77 @@ public class BannerFrame extends JFrame {
         int width = getWidth();
         int height = getHeight();
         
-        // Garis-garis dekoratif
-        g2d.setStroke(new BasicStroke(1.2f));
-        g2d.setColor(new Color(255, 255, 255, 25));
+        // Garis-garis dekoratif (lebih halus)
+        g2d.setStroke(new BasicStroke(0.8f));
+        g2d.setColor(new Color(255, 255, 255, 15));
         
         // Garis diagonal
-        for (int i = -height; i < width + height; i += 60) {
-            g2d.drawLine(i, 0, i + height, height);
+        for (int i = -height; i < width + height; i += 70) {
+            g2d.drawLine(i, 0, (int) (i + height * 0.8f), height);
         }
         
-        // Lingkaran-lingkaran dekoratif
-        g2d.setColor(new Color(255, 255, 255, 15));
-        for (int i = 0; i < 6; i++) {
-            int size = 80 + (i * 70);
-            int x = width - size - 40;
-            int y = height - size - 40;
+        // Lingkaran-lingkaran dekoratif (lebih subtle)
+        g2d.setColor(new Color(255, 255, 255, 10));
+        for (int i = 0; i < 5; i++) {
+            int size = 100 + (i * 90);
+            int x = width - size / 2 - 100;
+            int y = height - size / 2 - 100;
             g2d.drawOval(x, y, size, size);
         }
         
-        for (int i = 0; i < 4; i++) {
-            int size = 50 + (i * 45);
-            int x = -size + 20;
-            int y = -size + 20;
-            g2d.drawOval(x, y, size, size);
-        }
-        
-        // Bintik-bintik dekoratif
-        g2d.setColor(new Color(255, 255, 255, 40));
-        for (int i = 0; i < 150; i++) {
+        // Bintik-bintik dekoratif (lebih sedikit)
+        g2d.setColor(new Color(255, 255, 255, 30));
+        for (int i = 0; i < 80; i++) {
             int x = (int) (Math.random() * width);
             int y = (int) (Math.random() * height);
-            g2d.fillOval(x, y, 2, 2);
+            g2d.fillOval(x, y, 1, 1);
         }
     }
     
     private JPanel createHeaderPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
         
-        // Logo panel (kiri)
-        JPanel logoPanel = createLogoPanel();
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(0, 15, 0, 15);
         
-        // Title panel (tengah)
+        // Logo panel
+        JPanel logoPanel = createLogoPanel();
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        panel.add(logoPanel, gbc);
+        
+        // Title panel
         JPanel titlePanel = new JPanel();
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.setOpaque(false);
         
         JLabel mainTitle = new JLabel("PEMERINTAH KABUPATEN SIDOARJO");
-        mainTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        mainTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
         mainTitle.setForeground(Color.WHITE);
-        mainTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel subTitle = new JLabel("SISTEM PENDATAAN WILAYAH ADMINISTRATIF");
         subTitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subTitle.setForeground(new Color(220, 230, 255));
-        subTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subTitle.setForeground(new Color(200, 220, 255));
+        subTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel motto = new JLabel("\"Bersama Membangun Sidoarjo yang Lebih Baik\"");
         motto.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        motto.setForeground(new Color(200, 210, 250));
-        motto.setAlignmentX(Component.CENTER_ALIGNMENT);
+        motto.setForeground(new Color(180, 200, 240));
+        motto.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         titlePanel.add(mainTitle);
-        titlePanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        titlePanel.add(Box.createRigidArea(new Dimension(0, 2)));
         titlePanel.add(subTitle);
-        titlePanel.add(Box.createRigidArea(new Dimension(0, 3)));
+        titlePanel.add(Box.createRigidArea(new Dimension(0, 2)));
         titlePanel.add(motto);
         
-        panel.add(logoPanel, BorderLayout.WEST);
-        panel.add(titlePanel, BorderLayout.CENTER);
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add(titlePanel, gbc);
         
         return panel;
     }
@@ -243,54 +245,95 @@ public class BannerFrame extends JFrame {
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.anchor = GridBagConstraints.CENTER;
         
+        // Panel Utama dengan Glassmorphism effect
+        JPanel glassPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Glass background
+                g2d.setColor(GLASS_COLOR);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                
+                // Glass border
+                g2d.setColor(GLASS_BORDER);
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 30, 30);
+                
+                g2d.dispose();
+            }
+        };
+        glassPanel.setOpaque(false);
+        glassPanel.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
+        
+        GridBagConstraints glassGbc = new GridBagConstraints();
+        glassGbc.gridwidth = GridBagConstraints.REMAINDER;
+        glassGbc.anchor = GridBagConstraints.CENTER;
+        
         // Judul besar
         JLabel bigTitle = new JLabel("SELAMAT DATANG");
-        bigTitle.setFont(new Font("Segoe UI", Font.BOLD, 44));
+        bigTitle.setFont(new Font("Segoe UI", Font.BOLD, 48));
         bigTitle.setForeground(Color.WHITE);
         bigTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.add(bigTitle, gbc);
+        glassPanel.add(bigTitle, glassGbc);
         
-        panel.add(Box.createRigidArea(new Dimension(0, 15)), gbc);
+        glassPanel.add(Box.createRigidArea(new Dimension(0, 10)), glassGbc);
+        
+        // Line separator di bawah judul
+        JPanel separator = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 255, 255, 0), 
+                                                    50, 0, new Color(255, 255, 255, 100));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, 50, 2);
+                
+                g2d.setColor(new Color(255, 255, 255, 150));
+                g2d.fillRect(50, 0, 100, 2);
+                
+                gp = new GradientPaint(150, 0, new Color(255, 255, 255, 100), 
+                                      200, 0, new Color(255, 255, 255, 0));
+                g2d.setPaint(gp);
+                g2d.fillRect(150, 0, 50, 2);
+                g2d.dispose();
+            }
+        };
+        separator.setOpaque(false);
+        separator.setPreferredSize(new Dimension(200, 2));
+        glassPanel.add(separator, glassGbc);
+        
+        glassPanel.add(Box.createRigidArea(new Dimension(0, 25)), glassGbc);
         
         // Deskripsi
-        JLabel description = new JLabel("<html><div style='text-align: center; width: 650px; line-height: 1.5;'>"
-                + "Sistem informasi untuk pengelolaan data wilayah administratif Kabupaten Sidoarjo, "
-                + "meliputi data Kecamatan, Desa/Kelurahan, RT/RW, dan Kependudukan."
+        JLabel description = new JLabel("<html><div style='text-align: center; width: 550px; line-height: 1.6;'>"
+                + "Akses sistem informasi terpadu untuk pengelolaan data wilayah administratif "
+                + "dan kependudukan Kabupaten Sidoarjo secara digital dan efisien."
                 + "</div></html>");
-        description.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        description.setForeground(new Color(240, 245, 255));
+        description.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        description.setForeground(new Color(230, 240, 255));
         description.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.add(description, gbc);
+        glassPanel.add(description, glassGbc);
         
-        panel.add(Box.createRigidArea(new Dimension(0, 45)), gbc);
-        
-        
-        panel.add(Box.createRigidArea(new Dimension(0, 50)), gbc);
+        glassPanel.add(Box.createRigidArea(new Dimension(0, 45)), glassGbc);
         
         // Tombol Masuk
         btnEnter = createEnterButton();
-        btnEnter.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.add(btnEnter, gbc);
+        glassPanel.add(btnEnter, glassGbc);
+        
+        panel.add(glassPanel, gbc);
         
         // Animasi hover untuk tombol
         btnEnter.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                btnEnter.setBackground(LIGHT_ACCENT);
-                btnEnter.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Color.WHITE, 1),
-                    BorderFactory.createEmptyBorder(14, 50, 14, 50)
-                ));
-                btnEnter.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                btnEnter.setForeground(GOLD_COLOR);
             }
             
             @Override
             public void mouseExited(MouseEvent e) {
-                btnEnter.setBackground(ACCENT_COLOR);
-                btnEnter.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(ACCENT_COLOR.darker(), 1),
-                    BorderFactory.createEmptyBorder(14, 50, 14, 50)
-                ));
+                btnEnter.setForeground(Color.WHITE);
             }
         });
         
@@ -299,63 +342,32 @@ public class BannerFrame extends JFrame {
         return panel;
     }
     
-    private JPanel createStatCard(String title, String value, String subtitle) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(new Color(255, 255, 255, 25));
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 255, 255, 60), 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        card.setPreferredSize(new Dimension(190, 130));
-        
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        titleLabel.setForeground(new Color(220, 230, 255));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        valueLabel.setForeground(GOLD_COLOR);
-        valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel subtitleLabel = new JLabel(subtitle);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        subtitleLabel.setForeground(new Color(200, 210, 250));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        card.add(titleLabel);
-        card.add(Box.createRigidArea(new Dimension(0, 8)));
-        card.add(valueLabel);
-        card.add(Box.createRigidArea(new Dimension(0, 5)));
-        card.add(subtitleLabel);
-        
-        // Hover effect
-        card.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                card.setBackground(new Color(255, 255, 255, 45));
-                card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                card.setBackground(new Color(255, 255, 255, 25));
-            }
-        });
-        
-        return card;
-    }
     
     private JButton createEnterButton() {
-        JButton button = new JButton("➡️  MASUK KE SISTEM  ⬅️");
-        button.setFont(new Font("Segoe UI Emoji", Font.BOLD, 18));
-        button.setBackground(ACCENT_COLOR);
+        JButton button = new JButton("MULAI SEKARANG") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Gradient for button
+                GradientPaint gp = new GradientPaint(0, 0, ACCENT_COLOR, 
+                                                    getWidth(), 0, new Color(0, 150, 255));
+                g2d.setPaint(gp);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+                
+                // Shine effect
+                g2d.setColor(new Color(255, 255, 255, 40));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight() / 2, 15, 15);
+                
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
         button.setForeground(Color.WHITE);
-        button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(ACCENT_COLOR.darker(), 1),
-            BorderFactory.createEmptyBorder(14, 50, 14, 50)
-        ));
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(15, 60, 15, 60));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
@@ -371,7 +383,7 @@ public class BannerFrame extends JFrame {
         copyright.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         copyright.setForeground(new Color(180, 200, 240));
         
-        JLabel version = new JLabel("Sistem Pendataan v1.0.0 | Developed by Imron");
+        JLabel version = new JLabel("Sistem Pendataan v1.0.0");
         version.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         version.setForeground(new Color(180, 200, 240));
         

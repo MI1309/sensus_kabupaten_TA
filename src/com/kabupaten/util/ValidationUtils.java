@@ -15,13 +15,15 @@ public class ValidationUtils {
      * Rejects any characters that are not digits.
      * Optionally limits the maximum length.
      */
-    public static void applyNumericFilter(JTextField textField, int maxLength) {
+    public static void applyNumericFilter(JTextField textField, int maxLength, String fieldName) {
         ((AbstractDocument) textField.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override
             public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
                     throws BadLocationException {
                 if (isValid(fb.getDocument().getLength() + string.length(), string)) {
                     super.insertString(fb, offset, string, attr);
+                } else {
+                    showWarning(fieldName + " hanya boleh berisi angka!");
                 }
             }
 
@@ -30,30 +32,35 @@ public class ValidationUtils {
                     throws BadLocationException {
                 if (isValid(fb.getDocument().getLength() - length + text.length(), text)) {
                     super.replace(fb, offset, length, text, attrs);
+                } else {
+                    showWarning(fieldName + " hanya boleh berisi angka!");
                 }
             }
 
             private boolean isValid(int nextLength, String text) {
-                if (text == null)
-                    return true;
-                if (maxLength > 0 && nextLength > maxLength)
-                    return false;
+                if (text == null || text.isEmpty()) return true;
+                if (maxLength > 0 && nextLength > maxLength) return false;
                 return text.matches("\\d*");
+            }
+            
+            private void showWarning(String msg) {
+                JOptionPane.showMessageDialog(null, msg, "Peringatan Input", JOptionPane.WARNING_MESSAGE);
             }
         });
     }
 
     /**
-     * Rejects any numeric digits.
-     * Allows letters, spaces, and common name symbols.
+     * Rejects numbers. Allows letters and names symbols.
      */
-    public static void applyStringOnlyFilter(JTextField textField) {
+    public static void applyNameFilter(JTextField textField, String fieldName) {
         ((AbstractDocument) textField.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override
             public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
                     throws BadLocationException {
                 if (isValid(string)) {
                     super.insertString(fb, offset, string, attr);
+                } else {
+                    showWarning(fieldName + " hanya boleh berisi huruf dan simbol nama!");
                 }
             }
 
@@ -62,14 +69,19 @@ public class ValidationUtils {
                     throws BadLocationException {
                 if (isValid(text)) {
                     super.replace(fb, offset, length, text, attrs);
+                } else {
+                    showWarning(fieldName + " hanya boleh berisi huruf dan simbol nama!");
                 }
             }
 
             private boolean isValid(String text) {
-                if (text == null)
-                    return true;
-                // Only allow letters (a-z, A-Z) and spaces
-                return text.matches("[a-zA-Z\\s]*");
+                if (text == null || text.isEmpty()) return true;
+                // Allow letters, spaces, and common symbols (.,-())
+                return text.matches("[a-zA-Z\\s.,\\-()]*");
+            }
+
+            private void showWarning(String msg) {
+                JOptionPane.showMessageDialog(null, msg, "Peringatan Input", JOptionPane.WARNING_MESSAGE);
             }
         });
     }

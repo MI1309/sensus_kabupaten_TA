@@ -51,7 +51,7 @@ public class DesaDAO {
                 "FROM desa_kelurahan d " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
                 "WHERE d.nama_desa LIKE ? OR d.nama_kepala LIKE ? OR d.alamat_kantor LIKE ? " +
-                "OR k.nama_kecamatan LIKE ? " +
+                "OR d.no_hp LIKE ? OR k.nama_kecamatan LIKE ? " +
                 "ORDER BY d.id_desa ASC";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -60,6 +60,7 @@ public class DesaDAO {
             stmt.setString(2, searchPattern);
             stmt.setString(3, searchPattern);
             stmt.setString(4, searchPattern);
+            stmt.setString(5, searchPattern);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -146,7 +147,7 @@ public class DesaDAO {
         }
 
         String sql = "INSERT INTO desa_kelurahan (id_kecamatan, nama_desa, jenis, alamat_kantor, " +
-                "nama_kepala, alamat_rumah_kepala, no_hp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "nama_kepala, no_hp, foto_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, desa.getIdKecamatan());
@@ -154,8 +155,8 @@ public class DesaDAO {
             stmt.setString(3, desa.getJenis());
             stmt.setString(4, desa.getAlamatKantor());
             stmt.setString(5, desa.getNamaKepala());
-            stmt.setString(6, desa.getAlamatRumahKepala());
-            stmt.setString(7, desa.getNoHp());
+            stmt.setString(6, desa.getNoHp());
+            stmt.setString(7, desa.getFotoUrl());
 
             int rowsAffected = stmt.executeUpdate();
 
@@ -189,7 +190,7 @@ public class DesaDAO {
         }
 
         String sql = "UPDATE desa_kelurahan SET id_kecamatan=?, nama_desa=?, jenis=?, alamat_kantor=?, " +
-                "nama_kepala=?, alamat_rumah_kepala=?, no_hp=? WHERE id_desa=?";
+                "nama_kepala=?, no_hp=?, foto_url=? WHERE id_desa=?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, desa.getIdKecamatan());
@@ -197,8 +198,8 @@ public class DesaDAO {
             stmt.setString(3, desa.getJenis());
             stmt.setString(4, desa.getAlamatKantor());
             stmt.setString(5, desa.getNamaKepala());
-            stmt.setString(6, desa.getAlamatRumahKepala());
-            stmt.setString(7, desa.getNoHp());
+            stmt.setString(6, desa.getNoHp());
+            stmt.setString(7, desa.getFotoUrl());
             stmt.setInt(8, desa.getIdDesa());
 
             int rowsAffected = stmt.executeUpdate();
@@ -324,10 +325,10 @@ public class DesaDAO {
         desa.setJenis(rs.getString("jenis"));
         desa.setAlamatKantor(rs.getString("alamat_kantor"));
         desa.setNamaKepala(rs.getString("nama_kepala"));
-        desa.setAlamatRumahKepala(rs.getString("alamat_rumah_kepala"));
         desa.setNoHp(rs.getString("no_hp"));
         desa.setCreatedAt(rs.getTimestamp("created_at"));
         desa.setUpdatedAt(rs.getTimestamp("updated_at"));
+        desa.setFotoUrl(rs.getString("foto_url"));
 
         // Set nama kecamatan dari join
         try {

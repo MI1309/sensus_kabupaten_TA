@@ -2,15 +2,18 @@ package com.kabupaten.view;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.ArrayList;
-import com.kabupaten.dao.KecamatanDAO;
-import com.kabupaten.database.DatabaseConnection;
 import com.kabupaten.model.Kecamatan;
+import com.kabupaten.model.Warga;
+import com.kabupaten.dao.KecamatanDAO;
+import com.kabupaten.dao.WargaDAO;
+import com.kabupaten.database.DatabaseConnection;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.io.File;
@@ -20,8 +23,10 @@ public class dashboard_guest extends JFrame {
     private JPanel cardGridPanel;
     private JScrollPane scrollPane;
     private JTextField searchField;
+    private JTextField nikSearchField;
     private JLabel lblTotalKecamatan;
     private KecamatanDAO kecamatanDAO = new KecamatanDAO();
+    private WargaDAO wargaDAO = new WargaDAO();
 
     public dashboard_guest() {
         initComponents();
@@ -45,29 +50,42 @@ public class dashboard_guest extends JFrame {
 
     private JPanel createHeaderPanel() {
         JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(new Color(30, 60, 114));
+        header.setBackground(new Color(15, 32, 67)); // Match BannerFrame PRIMARY_COLOR
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(79, 172, 254)),
+                BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(0, 180, 255)), // Match BannerFrame ACCENT_COLOR
                 BorderFactory.createEmptyBorder(14, 24, 14, 24)));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
         left.setOpaque(false);
 
+        // Logo Section (FIXED & IMPROVED)
         try {
-            ImageIcon ico = new ImageIcon(getClass().getResource("/com/kabupaten/img/logo.jpg"));
-            Image scaled = ico.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH);
-            BufferedImage ci = new BufferedImage(48, 48, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = ci.createGraphics();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setClip(new Ellipse2D.Double(0, 0, 48, 48));
-            g2.drawImage(scaled, 0, 0, null);
-            g2.setClip(null);
-            g2.setColor(new Color(255, 255, 255, 130));
-            g2.setStroke(new BasicStroke(2));
-            g2.draw(new Ellipse2D.Double(1, 1, 46, 46));
-            g2.dispose();
-            left.add(new JLabel(new ImageIcon(ci)));
-        } catch (Exception ignored) {}
+            java.net.URL logoUrl = getClass().getResource("/com/kabupaten/img/logo.jpg");
+            if (logoUrl != null) {
+                BufferedImage img = javax.imageio.ImageIO.read(logoUrl);
+                int size = 55;
+                Image scaled = img.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+                BufferedImage ci = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = ci.createGraphics();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Circular Clip
+                Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, size, size);
+                g2.setClip(circle);
+                g2.drawImage(scaled, 0, 0, null);
+                
+                // White Border
+                g2.setClip(null);
+                g2.setColor(new Color(255, 255, 255, 150));
+                g2.setStroke(new BasicStroke(2));
+                g2.draw(new Ellipse2D.Double(1, 1, size - 2, size - 2));
+                g2.dispose();
+                
+                left.add(new JLabel(new ImageIcon(ci)));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading logo in Guest Dashboard: " + e.getMessage());
+        }
 
         JPanel titleBlock = new JPanel();
         titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
@@ -108,20 +126,37 @@ public class dashboard_guest extends JFrame {
         titleArea.add(lblTitle);
         titleArea.add(lblTotalKecamatan);
 
-        JPanel searchArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        JPanel searchArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         searchArea.setOpaque(false);
+
+        // Separator
+        JSeparator sepSearch = new JSeparator(SwingConstants.VERTICAL);
+        sepSearch.setPreferredSize(new Dimension(1, 25));
+        sepSearch.setForeground(new Color(218, 225, 238));
+
+        // Pencarian NIK
+        JPanel nikSearchBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        nikSearchBox.setOpaque(false);
+        JLabel lblNik = new JLabel("Cek NIK : ");
+        lblNik.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblNik.setForeground(new Color(70, 80, 100));
         
-        searchField = new JTextField(20);
-        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        searchField.setBorder(BorderFactory.createCompoundBorder(
+        nikSearchField = new JTextField(15);
+        nikSearchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        nikSearchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 210, 228), 1, true),
                 BorderFactory.createEmptyBorder(7, 11, 7, 11)));
-        searchArea.add(searchField);
         
-        JButton btnCari = makeButton("🔍 Cari", new Color(30, 60, 114), new Color(50, 90, 160));
-        btnCari.addActionListener(e -> loadKecamatanCards(searchField.getText().trim()));
-        searchField.addActionListener(e -> loadKecamatanCards(searchField.getText().trim()));
-        searchArea.add(btnCari);
+        JButton btnCariNik = makeButton("👤 Cek NIK", new Color(46, 125, 50), new Color(60, 150, 80));
+        btnCariNik.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        btnCariNik.addActionListener(e -> performNikSearch());
+        nikSearchField.addActionListener(e -> performNikSearch());
+        
+        nikSearchBox.add(lblNik);
+        nikSearchBox.add(nikSearchField);
+        nikSearchBox.add(btnCariNik);
+
+        searchArea.add(nikSearchBox);
 
         topBar.add(titleArea, BorderLayout.WEST);
         topBar.add(searchArea, BorderLayout.EAST);
@@ -247,7 +282,7 @@ public class dashboard_guest extends JFrame {
         
         String kepalaText = kecamatan.getNamaKepala() != null ? kecamatan.getNamaKepala() : "Belum diisi";
         JLabel lblKepala = new JLabel("👤 " + kepalaText);
-        lblKepala.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblKepala.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 11));
         lblKepala.setForeground(new Color(100, 115, 140));
         lblKepala.setAlignmentX(LEFT_ALIGNMENT);
         
@@ -272,7 +307,7 @@ public class dashboard_guest extends JFrame {
         statsPanel.add(kontakStat);
         
         JButton btnDetail = new JButton("Lihat Detail  →");
-        btnDetail.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnDetail.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         btnDetail.setBackground(new Color(30, 60, 114));
         btnDetail.setForeground(Color.WHITE);
         btnDetail.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
@@ -309,7 +344,7 @@ public class dashboard_guest extends JFrame {
             
             @Override
             public void mouseEntered(MouseEvent e) {
-                card.setBorder(new RoundedBorder(16, new Color(79, 172, 254)));
+                card.setBorder(new RoundedBorder(16, new Color(0, 180, 255))); // Match ACCENT_COLOR
                 card.repaint();
             }
             
@@ -458,7 +493,6 @@ public class dashboard_guest extends JFrame {
             {"👥 Jumlah Penduduk", formatNumber(kecamatan.getJumlahPenduduk()) + " Jiwa"},
             {"👥 Warga Terdaftar", formatNumber(totalWarga) + " Jiwa"},
             {"🏢 Alamat Kantor", kecamatan.getAlamatKantor() != null ? kecamatan.getAlamatKantor() : "-"},
-            {"🏠 Alamat Rumah", kecamatan.getAlamatRumahKepala() != null ? kecamatan.getAlamatRumahKepala() : "-"},
             {"📞 No. HP / Telepon", kecamatan.getNoHp() != null ? kecamatan.getNoHp() : "-"},
             {"📅 Dibuat pada", formatTimestamp(kecamatan.getCreatedAt())},
             {"🔄 Terakhir update", formatTimestamp(kecamatan.getUpdatedAt())}
@@ -471,7 +505,7 @@ public class dashboard_guest extends JFrame {
             r.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(238, 242, 252)));
 
             JLabel key = new JLabel(row[0]);
-            key.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            key.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
             key.setForeground(new Color(110, 120, 145));
             key.setPreferredSize(new Dimension(160, 35));
 
@@ -518,17 +552,17 @@ public class dashboard_guest extends JFrame {
                     lblFoto.setText("");
                 } catch (Exception e) {
                     lblFoto.setText("❌ Gagal memuat gambar");
-                    lblFoto.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+                    lblFoto.setFont(new Font("Segoe UI Emoji", Font.ITALIC, 14));
                     lblFoto.setForeground(Color.RED);
                 }
             } else {
                 lblFoto.setText("📷 Belum ada foto untuk kecamatan ini");
-                lblFoto.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+                lblFoto.setFont(new Font("Segoe UI Emoji", Font.ITALIC, 14));
                 lblFoto.setForeground(Color.GRAY);
             }
         } else {
             lblFoto.setText("📷 Belum ada foto untuk kecamatan ini");
-            lblFoto.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+            lblFoto.setFont(new Font("Segoe UI Emoji", Font.ITALIC, 14));
             lblFoto.setForeground(Color.GRAY);
         }
         
@@ -550,9 +584,6 @@ public class dashboard_guest extends JFrame {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         leftPanel.setOpaque(false);
         
-        JButton btnLoginDoor = createDoorLoginButton();
-        leftPanel.add(btnLoginDoor);
-        
         JLabel copyright = new JLabel("© 2025 Pemerintah Kabupaten Sidoarjo");
         copyright.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         copyright.setForeground(new Color(120, 130, 150));
@@ -571,13 +602,15 @@ public class dashboard_guest extends JFrame {
         center.add(new JLabel("|")); 
         center.add(vr);
 
-        JLabel right = new JLabel("Developed by Imron");
-        right.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-        right.setForeground(new Color(120, 130, 150));
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rightPanel.setOpaque(false);
+        
+        JButton btnLoginDoor = createDoorLoginButton();
+        rightPanel.add(btnLoginDoor);
 
         fp.add(leftPanel, BorderLayout.WEST);
         fp.add(center, BorderLayout.CENTER);
-        fp.add(right, BorderLayout.EAST);
+        fp.add(rightPanel, BorderLayout.EAST);
         return fp;
     }
 
@@ -663,7 +696,7 @@ public class dashboard_guest extends JFrame {
         JPanel headerPanel = createDetailHeader(kecamatan);
         
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabbedPane.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
         
         tabbedPane.addTab("📋 Informasi Umum", createInfoPanel(kecamatan));
         tabbedPane.addTab("🏘️ Daftar Desa/Kelurahan", createDesaListPanel(kecamatan));
@@ -734,7 +767,7 @@ public class dashboard_guest extends JFrame {
         lblValue.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel lblLabel = new JLabel(label);
-        lblLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        lblLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
         lblLabel.setForeground(Color.WHITE);
         lblLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -746,9 +779,12 @@ public class dashboard_guest extends JFrame {
     }
     
     private JPanel createInfoPanel(Kecamatan kecamatan) {
+        JPanel mainInfo = new JPanel(new BorderLayout(20, 0));
+        mainInfo.setBackground(Color.WHITE);
+        mainInfo.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        panel.setOpaque(false);
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
@@ -758,7 +794,6 @@ public class dashboard_guest extends JFrame {
             {"🏙️ Nama Kecamatan", kecamatan.getNamaKecamatan()},
             {"👤 Camat / Kepala", kecamatan.getNamaKepala() != null ? kecamatan.getNamaKepala() : "-"},
             {"🏢 Alamat Kantor", kecamatan.getAlamatKantor() != null ? kecamatan.getAlamatKantor() : "-"},
-            {"🏠 Alamat Rumah", kecamatan.getAlamatRumahKepala() != null ? kecamatan.getAlamatRumahKepala() : "-"},
             {"📞 No. Telepon", kecamatan.getNoHp() != null ? kecamatan.getNoHp() : "-"},
             {"📌 Jumlah Desa", String.valueOf(kecamatan.getJumlahDesa())},
             {"🏘️ Jumlah Kelurahan", String.valueOf(kecamatan.getJumlahKelurahan())},
@@ -772,7 +807,7 @@ public class dashboard_guest extends JFrame {
             gbc.gridy = i;
             gbc.fill = GridBagConstraints.NONE;
             JLabel lblKey = new JLabel(data[i][0]);
-            lblKey.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            lblKey.setFont(new Font("Segoe UI Emoji", Font.BOLD, 13));
             lblKey.setForeground(new Color(30, 60, 114));
             panel.add(lblKey, gbc);
             
@@ -783,8 +818,40 @@ public class dashboard_guest extends JFrame {
             lblValue.setForeground(new Color(80, 90, 110));
             panel.add(lblValue, gbc);
         }
+
+        // Tambahkan foto di kanan jika ada
+        JPanel fotoSide = new JPanel(new BorderLayout());
+        fotoSide.setOpaque(false);
+        fotoSide.setPreferredSize(new Dimension(300, 400));
         
-        return panel;
+        String fotoPath = kecamatan.getFotoUrl();
+        if (fotoPath != null && !fotoPath.trim().isEmpty()) {
+            File imgFile = new File(fotoPath);
+            if (!imgFile.exists()) {
+                imgFile = new File(System.getProperty("user.dir") + "/" + fotoPath);
+            }
+            if (imgFile.exists()) {
+                try {
+                    ImageIcon icon = new ImageIcon(imgFile.getPath());
+                    Image img = icon.getImage();
+                    int maxW = 300, maxH = 400;
+                    double scale = Math.min((double) maxW / img.getWidth(null), (double) maxH / img.getHeight(null));
+                    int newW = (int) (img.getWidth(null) * scale);
+                    int newH = (int) (img.getHeight(null) * scale);
+                    Image scaled = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+                    JLabel lblPoto = new JLabel(new ImageIcon(scaled));
+                    lblPoto.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(218, 228, 245), 2),
+                        BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+                    fotoSide.add(lblPoto, BorderLayout.NORTH);
+                } catch (Exception ignored) {}
+            }
+        }
+        
+        mainInfo.add(panel, BorderLayout.CENTER);
+        mainInfo.add(fotoSide, BorderLayout.EAST);
+        
+        return mainInfo;
     }
     
     private JPanel createDesaListPanel(Kecamatan kecamatan) {
@@ -792,8 +859,16 @@ public class dashboard_guest extends JFrame {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        String[] columns = {"No", "Nama Desa / Kelurahan", "Jenis", "Nama Kepala"};
-        Object[][] data = {};
+        String[] columns = {"No", "Foto", "Nama Desa / Kelurahan", "Jenis", "Nama Kepala"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public Class<?> getColumnClass(int column) {
+                if (column == 1) return ImageIcon.class;
+                return Object.class;
+            }
+        };
         
         try {
             Connection conn = DatabaseConnection.getConnection();
@@ -802,11 +877,27 @@ public class dashboard_guest extends JFrame {
             ps.setInt(1, kecamatan.getIdKecamatan());
             ResultSet rs = ps.executeQuery();
             
-            List<Object[]> rows = new ArrayList<>();
             int no = 1;
             while (rs.next()) {
-                rows.add(new Object[]{
+                String fotoUrl = rs.getString("foto_url");
+                ImageIcon icon = null;
+                if (fotoUrl != null && !fotoUrl.trim().isEmpty()) {
+                    File imgFile = new File(fotoUrl);
+                    if (!imgFile.exists()) {
+                        imgFile = new File(System.getProperty("user.dir") + "/" + fotoUrl);
+                    }
+                    if (imgFile.exists()) {
+                        try {
+                            ImageIcon tempIcon = new ImageIcon(imgFile.getPath());
+                            Image img = tempIcon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+                            icon = new ImageIcon(img);
+                        } catch (Exception ignored) {}
+                    }
+                }
+                
+                model.addRow(new Object[]{
                     no++,
+                    icon,
                     rs.getString("nama_desa"),
                     rs.getString("jenis"),
                     rs.getString("nama_kepala") != null ? rs.getString("nama_kepala") : "-"
@@ -814,9 +905,8 @@ public class dashboard_guest extends JFrame {
             }
             rs.close();
             ps.close();
-            data = rows.toArray(new Object[0][]);
             
-            if (data.length == 0) {
+            if (model.getRowCount() == 0) {
                 JLabel infoLabel = new JLabel("Belum ada data desa/kelurahan");
                 infoLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
                 infoLabel.setForeground(Color.GRAY);
@@ -832,22 +922,39 @@ public class dashboard_guest extends JFrame {
             return panel;
         }
         
-        JTable table = new JTable(data, columns) {
-            public boolean isCellEditable(int r, int c) { return false; }
-        };
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        table.setRowHeight(30);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
-        table.getTableHeader().setForeground(Color.WHITE);
+        JTable table = new JTable(model);
+        table.setRowHeight(70);
+        table.getColumnModel().getColumn(0).setPreferredWidth(40);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100); // Lebar diganti agar muat teks placeholder
+        table.getColumnModel().getColumn(2).setPreferredWidth(200);
+        table.getColumnModel().getColumn(3).setPreferredWidth(100);
+        table.getColumnModel().getColumn(4).setPreferredWidth(180);
         
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(250);
-        table.getColumnModel().getColumn(2).setPreferredWidth(100);
-        table.getColumnModel().getColumn(3).setPreferredWidth(200);
+        // Custom renderer untuk kolom foto
+        table.getColumnModel().getColumn(1).setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                if (value instanceof javax.swing.ImageIcon) {
+                    label.setIcon((javax.swing.ImageIcon) value);
+                    label.setText("");
+                } else {
+                    label.setIcon(null);
+                    label.setText("🚫 Tidak Ada");
+                    label.setFont(new Font("Segoe UI Emoji", Font.ITALIC, 11));
+                    if (!isSelected) {
+                        label.setForeground(Color.GRAY);
+                    }
+                }
+                return label;
+            }
+        });
+
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane spDesa = new JScrollPane(table);
+        panel.add(spDesa, BorderLayout.CENTER);
         
         return panel;
     }
@@ -929,7 +1036,7 @@ public class dashboard_guest extends JFrame {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.setRowHeight(30);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
+        table.getTableHeader().setBackground(Color.BLACK);
         table.getTableHeader().setForeground(Color.WHITE);
         
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
@@ -939,8 +1046,8 @@ public class dashboard_guest extends JFrame {
         table.getColumnModel().getColumn(4).setPreferredWidth(180);
         table.getColumnModel().getColumn(5).setPreferredWidth(120);
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane spRTRW = new JScrollPane(table);
+        panel.add(spRTRW, BorderLayout.CENTER);
         
         return panel;
     }
@@ -1002,7 +1109,7 @@ public class dashboard_guest extends JFrame {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.setRowHeight(30);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(30, 60, 114));
+        table.getTableHeader().setBackground(Color.BLACK);
         table.getTableHeader().setForeground(Color.WHITE);
         
         table.getColumnModel().getColumn(0).setPreferredWidth(50);
@@ -1013,8 +1120,8 @@ public class dashboard_guest extends JFrame {
         table.getColumnModel().getColumn(5).setPreferredWidth(100);
         table.getColumnModel().getColumn(6).setPreferredWidth(150);
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane spWarga = new JScrollPane(table);
+        panel.add(spWarga, BorderLayout.CENTER);
         
         return panel;
     }
@@ -1026,7 +1133,7 @@ public class dashboard_guest extends JFrame {
         
         // Tombol Back untuk kembali ke portal publik
         JButton btnBack = new JButton("← Kembali ke Portal Publik");
-        btnBack.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnBack.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         btnBack.setBackground(new Color(30, 60, 114));
         btnBack.setForeground(Color.WHITE);
         btnBack.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
@@ -1074,6 +1181,92 @@ public class dashboard_guest extends JFrame {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    private void performNikSearch() {
+        String nik = nikSearchField.getText().trim();
+        if (nik.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan masukkan NIK terlebih dahulu.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Warga warga = wargaDAO.getWargaByNik(nik);
+        if (warga != null) {
+            showWargaPopup(warga);
+        } else {
+            JOptionPane.showMessageDialog(this, "Data warga dengan NIK " + nik + " tidak ditemukan.", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void showWargaPopup(Warga warga) {
+        JDialog dlg = new JDialog(this, "Data Warga - " + warga.getNik(), true);
+        dlg.setSize(500, 600);
+        dlg.setLocationRelativeTo(this);
+        dlg.setLayout(new BorderLayout());
+        dlg.getContentPane().setBackground(Color.WHITE);
+
+        // Header Popup
+        JPanel pnlHeader = new JPanel(new BorderLayout());
+        pnlHeader.setBackground(new Color(46, 125, 50));
+        pnlHeader.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+        
+        JLabel lblTitle = new JLabel("Detail Data Warga");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitle.setForeground(Color.WHITE);
+        pnlHeader.add(lblTitle, BorderLayout.WEST);
+        
+        // Content Popup
+        JPanel pnlContent = new JPanel();
+        pnlContent.setLayout(new BoxLayout(pnlContent, BoxLayout.Y_AXIS));
+        pnlContent.setBackground(Color.WHITE);
+        pnlContent.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        String[][] infoWarga = {
+            {"🆔 NIK", warga.getNik()},
+            {"👤 Nama Lengkap", warga.getNamaLengkap()},
+            {"🚻 Jenis Kelamin", warga.getJenisKelamin() != null && warga.getJenisKelamin().equalsIgnoreCase("L") ? "Laki-laki" : "Perempuan"},
+            {"📍 Tempat Lahir", warga.getTempatLahir()},
+            {"📅 Tanggal Lahir", warga.getTanggalLahir() != null ? new SimpleDateFormat("dd MMMM yyyy").format(warga.getTanggalLahir()) : "-"},
+            {"🏠 Alamat", warga.getAlamat()},
+            {"🏘️ Desa/Kelurahan", warga.getNamaDesa()},
+            {"🏙️ Kecamatan", warga.getNamaKecamatan()}
+        };
+
+        for (String[] row : infoWarga) {
+            JPanel item = new JPanel(new BorderLayout(15, 0));
+            item.setOpaque(false);
+            item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+            item.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)));
+
+            JLabel lblKey = new JLabel(row[0]);
+            lblKey.setFont(new Font("Segoe UI Emoji", Font.BOLD, 13));
+            lblKey.setForeground(new Color(100, 100, 100));
+            lblKey.setPreferredSize(new Dimension(140, 35));
+
+            JLabel lblVal = new JLabel(row[1] != null ? row[1] : "-");
+            lblVal.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            lblVal.setForeground(new Color(33, 33, 33));
+
+            item.add(lblKey, BorderLayout.WEST);
+            item.add(lblVal, BorderLayout.CENTER);
+            pnlContent.add(item);
+            pnlContent.add(Box.createVerticalStrut(10));
+        }
+
+        // Footer Popup
+        JPanel pnlFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 15));
+        pnlFooter.setBackground(new Color(250, 250, 250));
+        pnlFooter.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(230, 230, 230)));
+        
+        JButton btnBack = makeButton("← Kembali", new Color(108, 117, 125), new Color(90, 100, 110));
+        btnBack.addActionListener(e -> dlg.dispose());
+        pnlFooter.add(btnBack);
+
+        dlg.add(pnlHeader, BorderLayout.NORTH);
+        dlg.add(pnlContent, BorderLayout.CENTER);
+        dlg.add(pnlFooter, BorderLayout.SOUTH);
+        
+        dlg.setVisible(true);
     }
 
     // ============================================================
