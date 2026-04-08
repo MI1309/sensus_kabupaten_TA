@@ -13,6 +13,8 @@ import java.util.List;
 
 public class CrudRTRWPanel extends JPanel {
     private RTRWDAO rtrwDAO = new RTRWDAO();
+    private com.kabupaten.dao.KecamatanDAO kecamatanDAO = new com.kabupaten.dao.KecamatanDAO();
+    private com.kabupaten.dao.DesaDAO desaDAO = new com.kabupaten.dao.DesaDAO();
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField txtSearch;
@@ -31,7 +33,7 @@ public class CrudRTRWPanel extends JPanel {
 
         // Tabel
         tableModel = new DefaultTableModel(
-                new Object[] { "No", "Desa", "RW", "RT", "Nama Ketua", "Kontak", "Alamat", "ID_HIDDEN" }, 0) {
+                new Object[] { "No", "Kecamatan", "Desa", "RW", "RT", "Nama Ketua", "Kontak", "Alamat", "ID_HIDDEN" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -53,10 +55,27 @@ public class CrudRTRWPanel extends JPanel {
         return label;
     }
 });
+        // Set lebar kolom
+        table.getColumnModel().getColumn(0).setPreferredWidth(40);
+        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.getColumnModel().getColumn(3).setPreferredWidth(50);
+        table.getColumnModel().getColumn(4).setPreferredWidth(50);
+        table.getColumnModel().getColumn(5).setPreferredWidth(150);
+        table.getColumnModel().getColumn(6).setPreferredWidth(120);
+        table.getColumnModel().getColumn(7).setPreferredWidth(250);
+
+        // Center alignment untuk No, RW, RT
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+
         // Hide ID_HIDDEN column
-        table.getColumnModel().getColumn(7).setMinWidth(0);
-        table.getColumnModel().getColumn(7).setMaxWidth(0);
-        table.getColumnModel().getColumn(7).setPreferredWidth(0);
+        table.getColumnModel().getColumn(8).setMinWidth(0);
+        table.getColumnModel().getColumn(8).setMaxWidth(0);
+        table.getColumnModel().getColumn(8).setPreferredWidth(0);
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -142,17 +161,26 @@ public class CrudRTRWPanel extends JPanel {
         btnHapus.setVisible(!readOnly);
     }
 
+    /**
+     * Method public untuk refresh dari luar (dipanggil oleh panel lain saat data berubah)
+     */
+    public void refreshData() {
+        refreshTable();
+    }
+
     private void refreshTable() {
         tableModel.setRowCount(0);
         Set<Integer> addedIds = new HashSet<>(); // Mencegah duplikat
 
         try {
             int no = 1;
-            for (RTRW rtrw : rtrwDAO.getAllRTRW()) {
+            List<RTRW> list = rtrwDAO.getAllRTRW();
+            for (RTRW rtrw : list) {
                 // Cek apakah ID sudah ditambahkan
                 if (!addedIds.contains(rtrw.getIdRtrw())) {
                     tableModel.addRow(new Object[] {
                             no++,
+                            rtrw.getKecamatan() != null && !rtrw.getKecamatan().equals(rtrw.getNamaDesa()) ? rtrw.getKecamatan() : "-",
                             rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "Tidak Ada",
                             rtrw.getRw(),
                             rtrw.getRt(),
@@ -190,6 +218,7 @@ public class CrudRTRWPanel extends JPanel {
                 if (!addedIds.contains(rtrw.getIdRtrw())) {
                     tableModel.addRow(new Object[] {
                             no++,
+                            rtrw.getKecamatan() != null && !rtrw.getKecamatan().equals(rtrw.getNamaDesa()) ? rtrw.getKecamatan() : "-",
                             rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "Tidak Ada",
                             rtrw.getRw(),
                             rtrw.getRt(),
@@ -284,8 +313,8 @@ public class CrudRTRWPanel extends JPanel {
 
     private void tambahData() {
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-
-        JTextField txtDesa = new JTextField();
+        JComboBox<String> cmbKecamatan = new JComboBox<>();
+        JComboBox<String> cmbDesa = new JComboBox<>();
         JTextField txtRW = new JTextField();
         JTextField txtRT = new JTextField();
         JTextField txtNamaKetua = new JTextField();
@@ -295,8 +324,29 @@ public class CrudRTRWPanel extends JPanel {
         txtAlamat.setWrapStyleWord(true);
         JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
 
+        // Load Kecamatan
+        cmbKecamatan.addItem("-- Pilih Kecamatan --");
+        List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
+        for (String kec : kecamatanList) {
+            cmbKecamatan.addItem(kec);
+        }
+
+        // Listener untuk filter Desa
+        cmbKecamatan.addActionListener(e -> {
+            cmbDesa.removeAllItems();
+            String selectedKec = (String) cmbKecamatan.getSelectedItem();
+            if (selectedKec != null && !selectedKec.equals("-- Pilih Kecamatan --")) {
+                List<String> dList = desaDAO.getDesaNamesByKecamatan(selectedKec);
+                for (String d : dList) {
+                    cmbDesa.addItem(d);
+                }
+            }
+        });
+
+        panel.add(new JLabel("Kecamatan:*"));
+        panel.add(cmbKecamatan);
         panel.add(new JLabel("Desa:*"));
-        panel.add(txtDesa);
+        panel.add(cmbDesa);
         panel.add(new JLabel("RW:*"));
         panel.add(txtRW);
         panel.add(new JLabel("RT:*"));
@@ -323,7 +373,7 @@ public class CrudRTRWPanel extends JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String namaDesa = txtDesa.getText().trim();
+                String namaDesa = (String) cmbDesa.getSelectedItem();
                 String rwStr = txtRW.getText().trim();
                 String rtStr = txtRT.getText().trim();
                 String namaKetua = txtNamaKetua.getText().trim();
@@ -331,7 +381,7 @@ public class CrudRTRWPanel extends JPanel {
                 String alamat = txtAlamat.getText().trim();
 
                 // Validasi field wajib
-                if (namaDesa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
+                if (namaDesa == null || namaDesa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
                     JOptionPane.showMessageDialog(this,
                             "Desa, RW, RT, dan Alamat wajib diisi!",
                             "Peringatan",
@@ -423,7 +473,7 @@ public class CrudRTRWPanel extends JPanel {
             return;
         }
 
-        int id = (Integer) table.getValueAt(selectedRow, 7);
+        int id = (Integer) table.getValueAt(selectedRow, 8);
         RTRW rtrw = rtrwDAO.getRTRWById(id);
 
         if (rtrw == null) {
@@ -436,8 +486,8 @@ public class CrudRTRWPanel extends JPanel {
 
         // Create panel with form fields
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
-
-        JTextField txtDesa = new JTextField(rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "");
+        JComboBox<String> cmbKecamatan = new JComboBox<>();
+        JComboBox<String> cmbDesa = new JComboBox<>();
         JTextField txtRW = new JTextField(rtrw.getRw());
         JTextField txtRT = new JTextField(rtrw.getRt());
         JTextField txtNamaKetua = new JTextField(rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "");
@@ -447,8 +497,43 @@ public class CrudRTRWPanel extends JPanel {
         txtAlamat.setWrapStyleWord(true);
         JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
 
+        // Load Kecamatan
+        cmbKecamatan.addItem("-- Pilih Kecamatan --");
+        List<String> kecamatanList = kecamatanDAO.getAllKecamatanNames();
+        for (String kec : kecamatanList) {
+            cmbKecamatan.addItem(kec);
+        }
+
+        // Listener untuk filter Desa
+        cmbKecamatan.addActionListener(e -> {
+            cmbDesa.removeAllItems();
+            String selectedKec = (String) cmbKecamatan.getSelectedItem();
+            if (selectedKec != null && !selectedKec.equals("-- Pilih Kecamatan --")) {
+                List<String> dList = desaDAO.getDesaNamesByKecamatan(selectedKec);
+                for (String d : dList) {
+                    cmbDesa.addItem(d);
+                }
+            }
+        });
+
+        // Set initial selection
+        if (rtrw.getKecamatan() != null) {
+            cmbKecamatan.setSelectedItem(rtrw.getKecamatan());
+            // Trigger load desa
+            List<String> dList = desaDAO.getDesaNamesByKecamatan(rtrw.getKecamatan());
+            cmbDesa.removeAllItems();
+            for (String d : dList) {
+                cmbDesa.addItem(d);
+            }
+            if (rtrw.getNamaDesa() != null) {
+                cmbDesa.setSelectedItem(rtrw.getNamaDesa());
+            }
+        }
+
+        panel.add(new JLabel("Kecamatan:*"));
+        panel.add(cmbKecamatan);
         panel.add(new JLabel("Desa:*"));
-        panel.add(txtDesa);
+        panel.add(cmbDesa);
         panel.add(new JLabel("RW:*"));
         panel.add(txtRW);
         panel.add(new JLabel("RT:*"));
@@ -475,7 +560,7 @@ public class CrudRTRWPanel extends JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String namaDesa = txtDesa.getText().trim();
+                String namaDesa = (String) cmbDesa.getSelectedItem();
                 String rwStr = txtRW.getText().trim();
                 String rtStr = txtRT.getText().trim();
                 String namaKetua = txtNamaKetua.getText().trim();
@@ -483,9 +568,9 @@ public class CrudRTRWPanel extends JPanel {
                 String alamat = txtAlamat.getText().trim();
 
                 // Validasi field wajib
-                if (namaDesa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
+                if (namaDesa == null || namaDesa.isEmpty() || rwStr.isEmpty() || rtStr.isEmpty() || alamat.isEmpty()) {
                     JOptionPane.showMessageDialog(this,
-                            "Desa, RW, RT, dan Alamat wajib diisi!",
+                            "Kecamatan, Desa, RW, RT, dan Alamat wajib diisi!",
                             "Peringatan",
                             JOptionPane.WARNING_MESSAGE);
                     return;
@@ -579,7 +664,7 @@ public class CrudRTRWPanel extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (result == JOptionPane.YES_OPTION) {
-            int id = (Integer) table.getValueAt(selectedRow, 7);
+            int id = (Integer) table.getValueAt(selectedRow, 8);
             try {
                 boolean success = rtrwDAO.deleteRTRW(id);
                 if (success) {
@@ -612,41 +697,36 @@ public class CrudRTRWPanel extends JPanel {
             return;
         }
 
-        int id = (Integer) table.getValueAt(selectedRow, 7);
+        int id = (Integer) table.getValueAt(selectedRow, 8);
         RTRW rtrw = rtrwDAO.getRTRWById(id);
 
         if (rtrw != null) {
-            String detail = String.format(
-                    "=== DETAIL RTRW ===\n\n" +
-                            "ID: %d\n" +
-                            "Desa: %s\n" +
-                            "RT: %s\n" +
-                            "RW: %s\n" +
-                            "Nama Ketua: %s\n" +
-                            "Kontak: %s\n" +
-                            "Alamat: %s\n" +
-                            "Dibuat: %s\n" +
-                            "Diupdate: %s",
-                    rtrw.getIdRtrw(),
-                    rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "Tidak Ada",
-                    rtrw.getRt(),
-                    rtrw.getRw(),
-                    rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "-",
-                    rtrw.getKontak() != null ? rtrw.getKontak() : "-",
-                    rtrw.getAlamat() != null ? rtrw.getAlamat() : "-",
-                    rtrw.getCreatedAt(),
-                    rtrw.getUpdatedAt());
+            JPanel detailPanel = new JPanel(new GridBagLayout());
+            detailPanel.setBackground(Color.WHITE);
+            detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.insets = new Insets(5, 5, 5, 5);
 
-            JTextArea textArea = new JTextArea(detail);
-            textArea.setEditable(false);
-            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            int row = 0;
+            addDetailRow(detailPanel, "ID RTRW", String.valueOf(rtrw.getIdRtrw()), gbc, row++);
+            addDetailRow(detailPanel, "Kecamatan", rtrw.getKecamatan() != null ? rtrw.getKecamatan() : "-", gbc, row++);
+            addDetailRow(detailPanel, "Desa/Kelurahan", rtrw.getNamaDesa() != null ? rtrw.getNamaDesa() : "-", gbc, row++);
+            addDetailRow(detailPanel, "RW", rtrw.getRw(), gbc, row++);
+            addDetailRow(detailPanel, "RT", rtrw.getRt(), gbc, row++);
+            addDetailRow(detailPanel, "Nama Ketua", rtrw.getNamaKetua() != null ? rtrw.getNamaKetua() : "-", gbc, row++);
+            addDetailRow(detailPanel, "Kontak", rtrw.getKontak() != null ? rtrw.getKontak() : "-", gbc, row++);
+            addDetailRow(detailPanel, "Alamat", rtrw.getAlamat() != null ? rtrw.getAlamat() : "-", gbc, row++);
+            addDetailRow(detailPanel, "Dibuat", rtrw.getCreatedAt() != null ? rtrw.getCreatedAt().toString() : "-", gbc, row++);
+            addDetailRow(detailPanel, "Diupdate", rtrw.getUpdatedAt() != null ? rtrw.getUpdatedAt().toString() : "-", gbc, row++);
 
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(400, 300));
+            JScrollPane scrollPane = new JScrollPane(detailPanel);
+            scrollPane.setPreferredSize(new Dimension(500, 400));
+            scrollPane.setBorder(null);
 
             JOptionPane.showMessageDialog(this,
                     scrollPane,
-                    "Detail RTRW",
+                    "Detail Data RTRW",
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this,
@@ -654,5 +734,21 @@ public class CrudRTRWPanel extends JPanel {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void addDetailRow(JPanel panel, String label, String value, GridBagConstraints gbc, int row) {
+        gbc.gridy = row;
+        
+        gbc.gridx = 0;
+        gbc.weightx = 0.3;
+        JLabel lblName = new JLabel(label + " :");
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        panel.add(lblName, gbc);
+        
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        JLabel lblValue = new JLabel(value);
+        lblValue.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        panel.add(lblValue, gbc);
     }
 }

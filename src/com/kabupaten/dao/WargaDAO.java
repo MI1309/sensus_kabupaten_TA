@@ -14,6 +14,13 @@ public class WargaDAO {
         this.connection = DatabaseConnection.getConnection();
     }
 
+    private Connection ensureConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            connection = DatabaseConnection.getConnection();
+        }
+        return connection;
+    }
+
     public List<Warga> getAllWarga() {
         List<Warga> list = new ArrayList<>();
         String sql = "SELECT w.*, d.nama_desa, k.nama_kecamatan " +
@@ -21,12 +28,17 @@ public class WargaDAO {
                 "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
                 "ORDER BY w.id_warga DESC";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-                ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToWarga(rs));
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToWarga(rs));
+                }
+                System.out.println("[DIAGNOSTIC] WargaDAO.getAllWarga: Found " + list.size() + " records.");
             }
         } catch (SQLException e) {
+            System.err.println("Error mengambil semua warga: " + e.getMessage());
             e.printStackTrace();
         }
         return list;
@@ -39,17 +51,20 @@ public class WargaDAO {
                 "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
                 "WHERE w.nik LIKE ? OR w.nama_lengkap LIKE ? OR w.alamat LIKE ? OR w.tempat_lahir LIKE ? OR d.nama_desa LIKE ? OR k.nama_kecamatan LIKE ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            String k = "%" + keyword + "%";
-            stmt.setString(1, k);
-            stmt.setString(2, k);
-            stmt.setString(3, k);
-            stmt.setString(4, k);
-            stmt.setString(5, k);
-            stmt.setString(6, k);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToWarga(rs));
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                String k = "%" + keyword + "%";
+                stmt.setString(1, k);
+                stmt.setString(2, k);
+                stmt.setString(3, k);
+                stmt.setString(4, k);
+                stmt.setString(5, k);
+                stmt.setString(6, k);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(mapResultSetToWarga(rs));
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -64,14 +79,17 @@ public class WargaDAO {
             sql += " AND id_warga != ?";
         }
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, nik);
-            if (excludeIdWarga != null) {
-                stmt.setInt(2, excludeIdWarga);
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, nik);
+                if (excludeIdWarga != null) {
+                    stmt.setInt(2, excludeIdWarga);
+                }
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1) > 0;
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -87,15 +105,18 @@ public class WargaDAO {
         }
 
         String sql = "INSERT INTO warga (nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, id_desa) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, w.getNik());
-            stmt.setString(2, w.getNamaLengkap());
-            stmt.setString(3, w.getJenisKelamin());
-            stmt.setString(4, w.getTempatLahir());
-            stmt.setDate(5, w.getTanggalLahir());
-            stmt.setString(6, w.getAlamat());
-            stmt.setInt(7, w.getIdDesa());
-            return stmt.executeUpdate() > 0;
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, w.getNik());
+                stmt.setString(2, w.getNamaLengkap());
+                stmt.setString(3, w.getJenisKelamin());
+                stmt.setString(4, w.getTempatLahir());
+                stmt.setDate(5, w.getTanggalLahir());
+                stmt.setString(6, w.getAlamat());
+                stmt.setInt(7, w.getIdDesa());
+                return stmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -109,16 +130,19 @@ public class WargaDAO {
         }
 
         String sql = "UPDATE warga SET nik=?, nama_lengkap=?, jenis_kelamin=?, tempat_lahir=?, tanggal_lahir=?, alamat=?, id_desa=? WHERE id_warga=?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, w.getNik());
-            stmt.setString(2, w.getNamaLengkap());
-            stmt.setString(3, w.getJenisKelamin());
-            stmt.setString(4, w.getTempatLahir());
-            stmt.setDate(5, w.getTanggalLahir());
-            stmt.setString(6, w.getAlamat());
-            stmt.setInt(7, w.getIdDesa());
-            stmt.setInt(8, w.getIdWarga());
-            return stmt.executeUpdate() > 0;
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, w.getNik());
+                stmt.setString(2, w.getNamaLengkap());
+                stmt.setString(3, w.getJenisKelamin());
+                stmt.setString(4, w.getTempatLahir());
+                stmt.setDate(5, w.getTanggalLahir());
+                stmt.setString(6, w.getAlamat());
+                stmt.setInt(7, w.getIdDesa());
+                stmt.setInt(8, w.getIdWarga());
+                return stmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -127,9 +151,12 @@ public class WargaDAO {
 
     public boolean deleteWarga(int id) {
         String sql = "DELETE FROM warga WHERE id_warga=?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                return stmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -142,11 +169,14 @@ public class WargaDAO {
                 "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
                 "WHERE w.nik=?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, nik);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToWarga(rs);
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, nik);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return mapResultSetToWarga(rs);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -161,11 +191,14 @@ public class WargaDAO {
                 "LEFT JOIN desa_kelurahan d ON w.id_desa = d.id_desa " +
                 "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
                 "WHERE w.id_warga=?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToWarga(rs);
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return mapResultSetToWarga(rs);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -193,10 +226,13 @@ public class WargaDAO {
 
     public int getTotalCount() {
         String sql = "SELECT COUNT(*) as total FROM warga";
-        try (Statement stmt = connection.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt("total");
+        try {
+            Connection conn = ensureConnection();
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error menghitung total Warga: " + e.getMessage());

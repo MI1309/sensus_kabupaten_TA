@@ -146,9 +146,17 @@ public class CrudWargaPanel extends JPanel {
         btnHapus.setVisible(!readOnly);
     }
 
+    /**
+     * Method public untuk refresh dari luar (dipanggil oleh panel lain saat data berubah)
+     */
+    public void refreshData() {
+        refreshTable();
+    }
+
     private void refreshTable() {
         tableModel.setRowCount(0);
         List<Warga> list = wargaDAO.getAllWarga();
+        
         int no = 1;
         for (Warga w : list) {
             tableModel.addRow(new Object[] {

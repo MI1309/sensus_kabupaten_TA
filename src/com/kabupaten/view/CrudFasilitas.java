@@ -128,6 +128,11 @@ public class CrudFasilitas extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
+        // Center alignment untuk No
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+
         add(scrollPane, BorderLayout.CENTER);
 
         // Panel tombol CRUD
@@ -323,8 +328,10 @@ public class CrudFasilitas extends JPanel {
                 String jenisFasilitas = fasilitas.getJenis();
 
                 // Filter berdasarkan jenis
+                // selectedJenis bisa mengandung emoji (misal "🏟️ Olahraga"), sementara
+                // jenisFasilitas dari DB hanya teks biasa (misal "Olahraga")
                 if (!filterAllJenis) {
-                    if (jenisFasilitas == null || !selectedJenis.equals(jenisFasilitas)) {
+                    if (jenisFasilitas == null || !selectedJenis.contains(jenisFasilitas)) {
                         continue;
                     }
                 }
@@ -538,54 +545,67 @@ public class CrudFasilitas extends JPanel {
         Fasilitas fasilitas = fasilitasDAO.getFasilitasById(idFasilitas);
 
         if (fasilitas != null) {
-            String detail = String.format(
-                    "╔══════════════════════════════════════════════════════════╗\n" +
-                    "║                    DETAIL DATA FASILITAS                  ║\n" +
-                    "╠══════════════════════════════════════════════════════════╣\n" +
-                    "║ ID Fasilitas     : %d\n" +
-                    "║ Nama Fasilitas   : %s\n" +
-                    "║ Jenis            : %s\n" +
-                    "║ Dinas Terkait    : %s\n" +
-                    "║ Alamat           : %s\n" +
-                    "║ Keterangan       : %s\n" +
-                    "║ Dibuat pada      : %s\n" +
-                    "║ Terakhir update  : %s\n" +
-                    "╚══════════════════════════════════════════════════════════╝",
-                    fasilitas.getIdFasilitas(),
-                    fasilitas.getNamaFasilitas() != null ? fasilitas.getNamaFasilitas() : "-",
-                    fasilitas.getJenis() != null ? fasilitas.getJenis() : "-",
-                    fasilitas.getDinasTerkait() != null ? fasilitas.getDinasTerkait() : "-",
-                    fasilitas.getAlamat() != null ? fasilitas.getAlamat() : "-",
-                    fasilitas.getKeterangan() != null ? fasilitas.getKeterangan() : "-",
-                    fasilitas.getCreatedAt() != null ? fasilitas.getCreatedAt() : "-",
-                    fasilitas.getUpdatedAt() != null ? fasilitas.getUpdatedAt() : "-");
+            JPanel detailPanel = new JPanel(new BorderLayout(20, 20));
+            detailPanel.setBackground(Color.WHITE);
+            detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-            JTextArea textArea = new JTextArea(detail);
-            textArea.setEditable(false);
-            textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-            textArea.setBackground(new Color(250, 250, 252));
-            textArea.setMargin(new Insets(15, 15, 15, 15));
+            // Info Panel (Left)
+            JPanel infoPanel = new JPanel(new GridBagLayout());
+            infoPanel.setBackground(Color.WHITE);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.insets = new Insets(8, 5, 8, 5);
+            gbc.anchor = GridBagConstraints.NORTHWEST;
 
-            JPanel detailPanel = new JPanel(new BorderLayout(10, 10));
-            detailPanel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+            int rowIdx = 0;
+            addDetailRow(infoPanel, "ID Fasilitas", String.valueOf(fasilitas.getIdFasilitas()), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Nama Fasilitas", fasilitas.getNamaFasilitas(), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Jenis", fasilitas.getJenis(), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Dinas Terkait", fasilitas.getDinasTerkait(), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Alamat", fasilitas.getAlamat(), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Keterangan", fasilitas.getKeterangan(), gbc, rowIdx++);
+            addDetailRow(infoPanel, "Dibuat", fasilitas.getCreatedAt() != null ? fasilitas.getCreatedAt().toString() : "-", gbc, rowIdx++);
+            addDetailRow(infoPanel, "Terakhir Update", fasilitas.getUpdatedAt() != null ? fasilitas.getUpdatedAt().toString() : "-", gbc, rowIdx++);
 
-            // Tampilkan foto jika ada
+            // Glue at bottom
+            gbc.weighty = 1.0;
+            infoPanel.add(Box.createVerticalGlue(), gbc);
+
+            detailPanel.add(infoPanel, BorderLayout.CENTER);
+
+            // Image Panel (Right)
             if (fasilitas.getFotoUrl() != null && !fasilitas.getFotoUrl().isEmpty()) {
                 try {
-                    ImageIcon icon = new ImageIcon(fasilitas.getFotoUrl());
-                    Image img = icon.getImage();
-                    // Scale image to fit
-                    Image scaled = img.getScaledInstance(300, 200, Image.SCALE_SMOOTH);
-                    JLabel lblFoto = new JLabel(new ImageIcon(scaled));
-                    lblFoto.setBorder(BorderFactory.createTitledBorder("Foto Fasilitas"));
-                    detailPanel.add(lblFoto, BorderLayout.EAST);
+                    File imgFile = new File(fasilitas.getFotoUrl());
+                    if (imgFile.exists()) {
+                        ImageIcon icon = new ImageIcon(imgFile.getPath());
+                        Image img = icon.getImage();
+                        int maxW = 350, maxH = 250;
+                        int imgW = icon.getIconWidth(), imgH = icon.getIconHeight();
+                        double scale = Math.min((double) maxW / imgW, (double) maxH / imgH);
+                        int finalW = (int) (imgW * scale), finalH = (int) (imgH * scale);
+                        
+                        Image scaled = img.getScaledInstance(finalW, finalH, Image.SCALE_SMOOTH);
+                        JLabel lblFoto = new JLabel(new ImageIcon(scaled));
+                        lblFoto.setBorder(BorderFactory.createCompoundBorder(
+                            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                        ));
+                        
+                        JPanel photoContainer = new JPanel(new BorderLayout());
+                        photoContainer.setBackground(Color.WHITE);
+                        photoContainer.add(lblFoto, BorderLayout.NORTH);
+                        photoContainer.setBorder(BorderFactory.createTitledBorder("Foto Fasilitas"));
+                        detailPanel.add(photoContainer, BorderLayout.EAST);
+                    }
                 } catch (Exception e) {
                     System.err.println("Gagal memuat foto detail: " + e.getMessage());
                 }
             }
 
             JScrollPane scrollPane = new JScrollPane(detailPanel);
-            scrollPane.setPreferredSize(new Dimension(850, 450));
+            scrollPane.setPreferredSize(new Dimension(850, 480));
+            scrollPane.setBorder(null);
 
             JOptionPane.showMessageDialog(this,
                     scrollPane,
@@ -597,6 +617,22 @@ public class CrudFasilitas extends JPanel {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void addDetailRow(JPanel panel, String label, String value, GridBagConstraints gbc, int row) {
+        gbc.gridy = row;
+        
+        gbc.gridx = 0;
+        gbc.weightx = 0.3;
+        JLabel lblName = new JLabel(label + " :");
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        panel.add(lblName, gbc);
+        
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        JLabel lblValue = new JLabel("<html><body style='width: 300px'>" + (value != null ? value : "-") + "</body></html>");
+        lblValue.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        panel.add(lblValue, gbc);
     }
 
     private void exportToCSV() {

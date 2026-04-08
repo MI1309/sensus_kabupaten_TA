@@ -941,14 +941,33 @@ public class dashboard_guest extends JFrame {
                     label.setIcon((javax.swing.ImageIcon) value);
                     label.setText("");
                 } else {
-                    label.setIcon(null);
-                    label.setText("🚫 Tidak Ada");
-                    label.setFont(new Font("Segoe UI Emoji", Font.ITALIC, 11));
-                    if (!isSelected) {
-                        label.setForeground(Color.GRAY);
-                    }
+                    label.setIcon(createDummyImage());
+                    label.setText("");
                 }
                 return label;
+            }
+            
+            private ImageIcon createDummyImage() {
+                int imgW = 60;
+                int imgH = 60;
+                BufferedImage dummy = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = dummy.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gradient = new GradientPaint(0, 0, new Color(30, 60, 114), imgW, imgH, new Color(79, 172, 254));
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, imgW, imgH);
+                g2d.setColor(new Color(255, 255, 255, 100));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRect(2, 2, imgW - 5, imgH - 5);
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
+                FontMetrics fm = g2d.getFontMetrics();
+                String cameraIcon = "📷";
+                int x = (imgW - fm.stringWidth(cameraIcon)) / 2;
+                int y = (imgH + fm.getAscent() - fm.getDescent()) / 2;
+                g2d.drawString(cameraIcon, x, y);
+                g2d.dispose();
+                return new ImageIcon(dummy);
             }
         });
 

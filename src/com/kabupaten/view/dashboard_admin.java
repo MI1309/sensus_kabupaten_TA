@@ -13,25 +13,29 @@ public class dashboard_admin extends JFrame {
     private JLabel lblWelcome;
     private CrudKecamatanPanel kecamatanPanel;
     private CrudDesaPanel desaPanel;
+    private CrudRTRWPanel rtrwPanel;
+    private CrudWargaPanel wargaPanel;
     private CrudFasilitas fasilitasPanel; // Tambahan panel fasilitas
 
     // PERBAIKAN: Constructor menerima 2 parameter (fullName dan username)
     public dashboard_admin(String fullName) {
         this.currentFullName = fullName;
 
-        // Di class Dashboard
-
-        // Saat inisialisasi panel
+        // Inisialisasi panel
         kecamatanPanel = new CrudKecamatanPanel();
         desaPanel = new CrudDesaPanel();
-        fasilitasPanel = new CrudFasilitas(); // Inisialisasi panel fasilitas
+        rtrwPanel = new CrudRTRWPanel();
+        wargaPanel = new CrudWargaPanel();
+        fasilitasPanel = new CrudFasilitas();
 
-        // MENJADI INI (Anonymous Inner Class - kompatibel semua versi Java):
+        // Register listeners for cross-panel synchronization
         kecamatanPanel.addDataChangeListener(new DataChangeListener() {
             @Override
             public void onDataChanged() {
                 desaPanel.refreshData();
-                fasilitasPanel.refreshData(); // Refresh fasilitas juga
+                rtrwPanel.refreshData();
+                wargaPanel.refreshData();
+                fasilitasPanel.refreshData();
             }
         });
 
@@ -39,16 +43,19 @@ public class dashboard_admin extends JFrame {
             @Override
             public void onDataChanged() {
                 kecamatanPanel.refreshData();
-                fasilitasPanel.refreshData(); // Refresh fasilitas juga
+                rtrwPanel.refreshData();
+                wargaPanel.refreshData();
+                fasilitasPanel.refreshData();
             }
         });
-        
-        // Tambahkan listener untuk fasilitas
+
         fasilitasPanel.addDataChangeListener(new DataChangeListener() {
             @Override
             public void onDataChanged() {
                 kecamatanPanel.refreshData();
                 desaPanel.refreshData();
+                rtrwPanel.refreshData();
+                wargaPanel.refreshData();
             }
         });
         
@@ -282,8 +289,8 @@ public class dashboard_admin extends JFrame {
         // Add tabs with icons
         tabbedPane.addTab("Kecamatan", kecamatanPanel);
         tabbedPane.addTab("Desa / Kelurahan", desaPanel);
-        tabbedPane.addTab("RT/RW", new CrudRTRWPanel());
-        tabbedPane.addTab("Warga", new CrudWargaPanel());
+        tabbedPane.addTab("RT/RW", rtrwPanel);
+        tabbedPane.addTab("Warga", wargaPanel);
         tabbedPane.addTab("Fasilitas", fasilitasPanel); // Tab Fasilitas ditambahkan
 
         return tabbedPane;
@@ -297,11 +304,11 @@ public class dashboard_admin extends JFrame {
             case 1:
                 return "🏡"; // Desa
             case 2:
-                return "🏥"; // Fasilitas (icon rumah sakit/gedung)
-            case 3:
                 return "🏘️"; // RT/RW
-            case 4:
+            case 3:
                 return "👥"; // Warga
+            case 4:
+                return "🏢"; // Fasilitas
             default:
                 return "📋";
         }

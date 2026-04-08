@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
  * Kelas untuk mengelola koneksi database
  */
 public class DatabaseConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/db_kabupaten";
+    private static final String URL = "jdbc:mysql://localhost:3306/db_kabupaten?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_general_ci";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "";
 
