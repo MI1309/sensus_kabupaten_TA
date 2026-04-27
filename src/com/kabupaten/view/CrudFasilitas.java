@@ -270,7 +270,7 @@ public class CrudFasilitas extends JPanel {
                     File imgFile = new File(fasilitas.getFotoUrl());
                     if (imgFile.exists()) {
                         ImageIcon icon = new ImageIcon(imgFile.getPath());
-                        Image img = icon.getImage().getScaledInstance(90, 75, Image.SCALE_SMOOTH);
+                        Image img = icon.getImage().getScaledInstance(60, 80, Image.SCALE_SMOOTH);
                         thumbnail = new ImageIcon(img);
                     }
                 }
@@ -357,7 +357,7 @@ public class CrudFasilitas extends JPanel {
                     File imgFile = new File(fasilitas.getFotoUrl());
                     if (imgFile.exists()) {
                         ImageIcon icon = new ImageIcon(imgFile.getPath());
-                        Image img = icon.getImage().getScaledInstance(90, 75, Image.SCALE_SMOOTH);
+                        Image img = icon.getImage().getScaledInstance(60, 80, Image.SCALE_SMOOTH);
                         thumbnail = new ImageIcon(img);
                     }
                 }
@@ -580,7 +580,7 @@ public class CrudFasilitas extends JPanel {
                     if (imgFile.exists()) {
                         ImageIcon icon = new ImageIcon(imgFile.getPath());
                         Image img = icon.getImage();
-                        int maxW = 350, maxH = 250;
+                        int maxW = 300, maxH = 400;
                         int imgW = icon.getIconWidth(), imgH = icon.getIconHeight();
                         double scale = Math.min((double) maxW / imgW, (double) maxH / imgH);
                         int finalW = (int) (imgW * scale), finalH = (int) (imgH * scale);

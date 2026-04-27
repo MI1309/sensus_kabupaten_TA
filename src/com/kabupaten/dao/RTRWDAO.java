@@ -227,6 +227,31 @@ public class RTRWDAO {
     }
 
     /**
+     * Mendapatkan daftar RTRW berdasarkan nama desa
+     */
+    public List<RTRW> getRTRWByDesaName(String namaDesa) {
+        List<RTRW> rtrwList = new ArrayList<>();
+        String sql = "SELECT r.*, k.nama_kecamatan FROM rtrw r " +
+                     "LEFT JOIN desa_kelurahan d ON r.nama_desa COLLATE utf8mb4_general_ci = d.nama_desa COLLATE utf8mb4_general_ci " +
+                     "LEFT JOIN kecamatan k ON d.id_kecamatan = k.id_kecamatan " +
+                     "WHERE r.nama_desa = ? ORDER BY r.rt, r.rw";
+        try {
+            Connection conn = ensureConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, namaDesa);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        rtrwList.add(mapResultSetToRTRW(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rtrwList;
+    }
+
+    /**
      * Mendapatkan total count
      */
     public int getTotalCount() {

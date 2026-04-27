@@ -232,13 +232,13 @@ public class dashboard_guest extends JFrame {
         final String fotoPath = kecamatan.getFotoUrl();
 
         JPanel card = new JPanel(new BorderLayout());
-        card.setPreferredSize(new Dimension(320, 320));
+        card.setPreferredSize(new Dimension(240, 560));
         card.setBackground(Color.WHITE);
         card.setBorder(new RoundedBorder(16, new Color(218, 228, 245)));
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JPanel imgPanel = new JPanel(new BorderLayout());
-        imgPanel.setPreferredSize(new Dimension(320, 150));
+        imgPanel.setPreferredSize(new Dimension(240, 320));
         imgPanel.setBackground(new Color(30, 60, 114));
         
         if (fotoPath != null && !fotoPath.trim().isEmpty()) {
@@ -253,8 +253,8 @@ public class dashboard_guest extends JFrame {
                     ImageIcon icon = new ImageIcon(imgFile.getPath());
                     int imgW = icon.getIconWidth();
                     int imgH = icon.getIconHeight();
-                    int maxW = 300, maxH = 140;
-                    double scale = Math.min((double) maxW / imgW, (double) maxH / imgH);
+                    int maxW = 240, maxH = 300;
+                    double scale = Math.max((double) maxW / imgW, (double) maxH / imgH); // Filling the space better
                     int newW = (int) (imgW * scale);
                     int newH = (int) (imgH * scale);
                     Image scaled = icon.getImage().getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
@@ -310,7 +310,7 @@ public class dashboard_guest extends JFrame {
         btnDetail.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         btnDetail.setBackground(new Color(30, 60, 114));
         btnDetail.setForeground(Color.WHITE);
-        btnDetail.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        btnDetail.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
         btnDetail.setFocusPainted(false);
         btnDetail.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDetail.setAlignmentX(LEFT_ALIGNMENT);
@@ -543,7 +543,7 @@ public class dashboard_guest extends JFrame {
                     ImageIcon icon = new ImageIcon(imgFile.getPath());
                     int imgW = icon.getIconWidth();
                     int imgH = icon.getIconHeight();
-                    int maxW = 700, maxH = 500;
+                    int maxW = 450, maxH = 600;
                     double scale = Math.min((double) maxW / imgW, (double) maxH / imgH);
                     int newW = (int) (imgW * scale);
                     int newH = (int) (imgH * scale);
@@ -834,7 +834,7 @@ public class dashboard_guest extends JFrame {
                 try {
                     ImageIcon icon = new ImageIcon(imgFile.getPath());
                     Image img = icon.getImage();
-                    int maxW = 300, maxH = 400;
+                    int maxW = 320, maxH = 420;
                     double scale = Math.min((double) maxW / img.getWidth(null), (double) maxH / img.getHeight(null));
                     int newW = (int) (img.getWidth(null) * scale);
                     int newH = (int) (img.getHeight(null) * scale);
@@ -889,7 +889,7 @@ public class dashboard_guest extends JFrame {
                     if (imgFile.exists()) {
                         try {
                             ImageIcon tempIcon = new ImageIcon(imgFile.getPath());
-                            Image img = tempIcon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+                            Image img = tempIcon.getImage().getScaledInstance(60, 80, Image.SCALE_SMOOTH);
                             icon = new ImageIcon(img);
                         } catch (Exception ignored) {}
                     }
@@ -924,8 +924,8 @@ public class dashboard_guest extends JFrame {
         
         JTable table = new JTable(model);
         table.setRowHeight(70);
-        table.getColumnModel().getColumn(0).setPreferredWidth(40);
-        table.getColumnModel().getColumn(1).setPreferredWidth(100); // Lebar diganti agar muat teks placeholder
+        table.getColumnModel().getColumn(0).setPreferredWidth(30);
+        table.getColumnModel().getColumn(1).setPreferredWidth(80); // Lebar diganti agar muat teks placeholder
         table.getColumnModel().getColumn(2).setPreferredWidth(200);
         table.getColumnModel().getColumn(3).setPreferredWidth(100);
         table.getColumnModel().getColumn(4).setPreferredWidth(180);
@@ -949,7 +949,7 @@ public class dashboard_guest extends JFrame {
             
             private ImageIcon createDummyImage() {
                 int imgW = 60;
-                int imgH = 60;
+                int imgH = 80;
                 BufferedImage dummy = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2d = dummy.createGraphics();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

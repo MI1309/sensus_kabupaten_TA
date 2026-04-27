@@ -212,8 +212,8 @@ public class CrudKecamatanPanel extends JPanel {
      * Class untuk renderer gambar di tabel
      */
     private class ImageRenderer extends DefaultTableCellRenderer {
-        private final int imageWidth = 70;
-        private final int imageHeight = 70;
+        private final int imageWidth = 75;
+        private final int imageHeight = 100;
         
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -358,7 +358,7 @@ public class CrudKecamatanPanel extends JPanel {
                 ImageIcon icon = new ImageIcon(imgFile.getPath());
                 // Resize awal agar tidak terlalu besar
                 Image img = icon.getImage();
-                Image scaled = img.getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+                Image scaled = img.getScaledInstance(75, 100, Image.SCALE_SMOOTH);
                 return new ImageIcon(scaled);
             }
         } catch (Exception e) {
